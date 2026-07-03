@@ -361,10 +361,9 @@ function fmt(n, dp) {
   return "฿" + formatted;
 }
 function togglePrivacy() {
-  window._privacyMode = !window._privacyMode;
-  const btn = document.getElementById("privacy-btn"), icon = document.getElementById("privacy-icon");
-  if (window._privacyMode) { btn.classList.add("active"); icon.className = "ti ti-eye-off"; icon.style.fontSize = "17px"; }
-  else { btn.classList.remove("active"); icon.className = "ti ti-eye"; icon.style.fontSize = "17px"; icon.style.color = "var(--slate-500)"; }
+  settings.privacyMode = !settings.privacyMode;
+  saveSettings();
+  applyPrivacyMode();
   renderHome();
   const activePage = document.querySelector(".page.active");
   if (activePage) {
@@ -382,6 +381,18 @@ function togglePrivacy() {
     if (id==="page-estbills")     renderEstBillsPage();
     if (id==="page-forecast")     renderForecastPage();
   }
+}
+// Applies settings.privacyMode to window._privacyMode (what fmt() actually checks)
+// and the toggle button's visual state, without flipping the value — same split as
+// applyDarkMode()/toggleDarkMode(). Called once at startup so Privacy Mode, once
+// turned on, stays on across reloads instead of silently resetting to showing real
+// numbers again — the opposite of what a "hide my balance" toggle should do.
+function applyPrivacyMode() {
+  window._privacyMode = !!settings.privacyMode;
+  const btn = document.getElementById("privacy-btn"), icon = document.getElementById("privacy-icon");
+  if (!btn || !icon) return;
+  if (window._privacyMode) { btn.classList.add("active"); icon.className = "ti ti-eye-off"; icon.style.fontSize = "17px"; }
+  else { btn.classList.remove("active"); icon.className = "ti ti-eye"; icon.style.fontSize = "17px"; icon.style.color = "var(--slate-500)"; }
 }
 function safeDate(raw) {
   if (!raw) return "—";
@@ -547,6 +558,7 @@ async function startup() {
   } else { setLoading("Loading…", 80); await delay(300); }
   setLoading("Ready", 100); await delay(300);
   applyDarkMode();
+  applyPrivacyMode();
   checkRecurringSuggestions();
   checkInAppNotifications();
   document.getElementById("loading-screen").classList.add("hidden");
