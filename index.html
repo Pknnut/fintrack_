@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FinTrack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="loading-screen">
+  <div class="loading-logo">💰</div>
+  <div class="loading-title">FinTrack</div>
+  <div class="loading-msg" id="loading-msg">Starting up…</div>
+  <div class="loading-bar-wrap"><div class="loading-bar" id="loading-bar"></div></div>
+</div>
+
+<div id="pin-screen" class="hidden">
+  <div class="pin-logo">💰</div>
+  <div class="pin-title">FinTrack</div>
+  <div class="pin-sub" id="pin-sub">Enter your PIN</div>
+  <div class="pin-dots">
+    <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
+    <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
+    <div class="pin-dot" id="d4"></div><div class="pin-dot" id="d5"></div>
+  </div>
+  <div class="pin-pad">
+    <button class="pin-btn" onclick="pinPress('1')">1</button><button class="pin-btn" onclick="pinPress('2')">2</button><button class="pin-btn" onclick="pinPress('3')">3</button>
+    <button class="pin-btn" onclick="pinPress('4')">4</button><button class="pin-btn" onclick="pinPress('5')">5</button><button class="pin-btn" onclick="pinPress('6')">6</button>
+    <button class="pin-btn" onclick="pinPress('7')">7</button><button class="pin-btn" onclick="pinPress('8')">8</button><button class="pin-btn" onclick="pinPress('9')">9</button>
+    <button class="pin-btn" onclick="pinPress('')"></button><button class="pin-btn" onclick="pinPress('0')">0</button><button class="pin-btn del" onclick="pinDel()">⌫</button>
+  </div>
+  <div class="pin-error" id="pin-error"></div>
+  <div class="pin-setup-hint" id="pin-setup-hint"></div>
+</div>
+
+<!-- MODAL: Edit goal -->
+<div class="report-modal-overlay hidden" id="modal-report">
+  <div>
+    <div class="report-card" id="report-card-inner">
+      <div class="report-card-hd">
+        <div class="report-brand"><div class="report-brand-dot"></div><span class="report-brand-name">FinTrack</span></div>
+        <span class="report-period" id="report-period">—</span>
+      </div>
+      <div class="report-net">
+        <div class="report-net-lbl">Net savings</div>
+        <div class="report-net-amt" id="report-net-amt">฿0</div>
+        <div class="report-net-sub">Income minus expenses this month</div>
+      </div>
+      <div class="report-stats">
+        <div class="report-stat"><div class="report-stat-lbl">Income</div><div class="report-stat-val" style="color:#22c55e" id="report-inc">฿0</div><div class="report-stat-sub" id="report-inc-sub"></div></div>
+        <div class="report-stat"><div class="report-stat-lbl">Expenses</div><div class="report-stat-val" style="color:#ef4444" id="report-exp">฿0</div><div class="report-stat-sub" id="report-exp-sub"></div></div>
+        <div class="report-stat"><div class="report-stat-lbl">Savings rate</div><div class="report-stat-val" style="color:#fff" id="report-rate">0%</div><div class="report-stat-sub">of income saved</div></div>
+        <div class="report-stat"><div class="report-stat-lbl">Top category</div><div class="report-stat-val" style="color:#fff;font-size:13px" id="report-top-cat">—</div><div class="report-stat-sub" id="report-top-cat-sub"></div></div>
+      </div>
+      <div class="report-highlights">
+        <div class="report-hl-row"><span class="report-hl-lbl"><i class="ti ti-trending-up" style="font-size:13px;color:#0d9488" aria-hidden="true"></i> Biggest income</span><span class="report-hl-val" id="report-big-inc">—</span></div>
+        <div class="report-hl-row"><span class="report-hl-lbl"><i class="ti ti-arrow-up" style="font-size:13px;color:#ef4444" aria-hidden="true"></i> Biggest expense</span><span class="report-hl-val" id="report-big-exp">—</span></div>
+        <div class="report-hl-row"><span class="report-hl-lbl"><i class="ti ti-piggy-bank" style="font-size:13px;color:#0d9488" aria-hidden="true"></i> Savings rate</span><span class="report-hl-val" id="report-rate2">0%</span></div>
+        <div class="report-bar-bg"><div class="report-bar" id="report-bar"></div></div>
+      </div>
+      <div class="report-ft">
+        <span class="report-ft-text">FinTrack · pknnut.github.io</span>
+        <div class="report-actions">
+          <button class="report-close-btn" onclick="closeModal('report')">Close</button>
+          <button class="report-save-btn" onclick="saveReportImage()"><i class="ti ti-download" style="font-size:12px" aria-hidden="true"></i> Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="modal-add-recurring">
+  <div class="modal-sheet" style="padding-bottom:48px">
+    <div class="modal-title">Add recurring</div>
+    <div class="modal-sub">This will appear on your recurring list every month</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button id="rec-add-type-expense" onclick="setRecAddType('Expense')" style="flex:1;padding:8px;border-radius:8px;border:2px solid #ef4444;background:#fef2f2;color:#991b1b;font-size:12px;font-weight:700;cursor:pointer">Expense</button>
+      <button id="rec-add-type-income" onclick="setRecAddType('Income')" style="flex:1;padding:8px;border-radius:8px;border:1.5px solid var(--slate-200);background:var(--white);color:var(--slate-400);font-size:12px;font-weight:700;cursor:pointer">Income</button>
+    </div>
+    <div style="margin-bottom:10px"><label style="font-size:10px;font-weight:700;color:var(--slate-400);letter-spacing:0.05em">CATEGORY</label>
+      <select id="rec-add-cat"></select>
+    </div>
+    <div style="margin-bottom:10px"><label style="font-size:10px;font-weight:700;color:var(--slate-400);letter-spacing:0.05em">DESCRIPTION</label>
+      <input id="rec-add-desc" type="text" placeholder="e.g. Netflix, Rent, Gym" style="width:100%;margin-top:4px;border:1.5px solid var(--slate-200);border-radius:var(--radius-sm);padding:10px;font-size:13px;font-family:inherit;background:var(--white);color:var(--slate-900);outline:none">
+    </div>
+    <div style="margin-bottom:16px"><label style="font-size:10px;font-weight:700;color:var(--slate-400);letter-spacing:0.05em">AMOUNT (฿)</label>
+      <input id="rec-add-amount" type="text" inputmode="none" placeholder="0.00" style="width:100%;margin-top:4px;border:1.5px solid var(--slate-200);border-radius:var(--radius-sm);padding:10px;font-size:13px;font-family:inherit;background:var(--white);color:var(--slate-900);outline:none">
+    </div>
+    <div style="margin-bottom:16px"><label style="font-size:10px;font-weight:700;color:var(--slate-400);letter-spacing:0.05em">NOTES (optional)</label>
+      <input id="rec-add-notes" type="text" placeholder="Optional note" style="width:100%;margin-top:4px;border:1.5px solid var(--slate-200);border-radius:var(--radius-sm);padding:10px;font-size:13px;font-family:inherit;background:var(--white);color:var(--slate-900);outline:none">
+    </div>
+    <div class="modal-btn-row"><button class="modal-cancel" onclick="closeModal('add-recurring')">Cancel</button><button class="modal-confirm" id="rec-add-confirm-btn" style="background:#0d9488" onclick="confirmAddRecurring()">Add recurring</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="modal-add-estbill">
+  <div class="modal-sheet" style="padding-bottom:48px">
+    <div class="modal-title">Add estimated bill</div>
+    <div class="modal-sub">A bill or income you know is coming, even if the amount varies</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button id="est-add-type-expense" onclick="setEstAddType('Expense')" style="flex:1;padding:8px;border-radius:8px;border:2px solid #ef4444;background:#fef2f2;color:#991b1b;font-size:12px;font-weight:700;cursor:pointer">Expense</button>
+      <button id="est-add-type-income" onclick="setEstAddType('Income')" style="flex:1;padding:8px;border-radius:8px;border:1.5px solid var(--slate-200);background:var(--white);color:var(--slate-400);font-size:12px;font-weight:700;cursor:pointer">Income</button>
+    </div>
+    <div style="margin-bottom:10px"><label style="font-size:10px;font-weight:700;color:var(--slate-400);letter-spacing:0.05em">CATEGORY</label>
+      <select id="est-add-cat"></select>
+    </div>
+    <div style="margin-bottom:10px"><label style="font-size:10px;font-weight:700;color:var(--slate-400);letter-spacing:0.05em">DESCRIPTION</label>
+      <input id="est-add-desc" type="text" placeholder="e.g. Electric, Credit card, Internet" style="width:100%;margin-top:4px;border:1.5px solid var(--slate-200);border-radius:var(--radius-sm);padding:10px;font-size:13px;font-family:inherit;background:var(--white);color:var(--slate-900);outline:none">
+    </div>
+    <div style="margin-bottom:16px"><label style="font-size:10px;font-weight:700;color:var(--slate-400);letter-spacing:0.05em">ESTIMATED AMOUNT (฿)</label>
+      <input id="est-add-amount" type="text" inputmode="none" placeholder="0.00" style="width:100%;margin-top:4px;border:1.5px solid var(--slate-200);border-radius:var(--radius-sm);padding:10px;font-size:13px;font-family:inherit;background:var(--white);color:var(--slate-900);outline:none">
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;background:var(--slate-50);border-radius:var(--radius-sm);padding:10px 12px">
+      <div><div style="font-size:12px;font-weight:600;color:var(--slate-700)">Repeats monthly</div><div style="font-size:10px;color:var(--slate-400)">On = counted in the Cash Flow Forecast. Off = a one-off, this month only.</div></div>
+      <button class="toggle on" id="est-add-repeats-toggle" onclick="toggleEstRepeats()" style="flex-shrink:0;margin-left:10px"></button>
+    </div>
+    <div class="modal-btn-row"><button class="modal-cancel" onclick="closeModal('add-estbill')">Cancel</button><button class="modal-confirm" id="est-add-confirm-btn" style="background:#0d9488" onclick="confirmAddEstBill()">Add bill</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="modal-edit-goal">
+  <div class="modal-sheet" style="padding-bottom:48px">
+    <div class="modal-title">Edit goal</div>
+    <div class="modal-sub">Update your goal details</div>
+    <div class="form-field" style="margin-bottom:10px"><label>GOAL NAME</label><input id="eg-name" type="text" placeholder="e.g. ✈️ Japan trip" style="width:100%;border:none;outline:none;font-size:13px;font-weight:500;color:var(--slate-900);background:none;font-family:inherit"></div>
+    <div class="form-field" style="margin-bottom:10px"><label>TARGET AMOUNT (฿)</label><input id="eg-target" type="text" inputmode="none" min="0" placeholder="0" style="width:100%;border:none;outline:none;font-size:18px;font-weight:700;color:var(--slate-900);background:none;font-family:inherit"></div>
+    <div class="form-field" style="margin-bottom:10px"><label>AMOUNT SAVED SO FAR (฿)</label><input id="eg-saved" type="text" inputmode="none" min="0" placeholder="0" style="width:100%;border:none;outline:none;font-size:18px;font-weight:700;color:var(--slate-900);background:none;font-family:inherit"></div>
+    <div class="form-field" style="margin-bottom:10px"><label>MONTHLY CONTRIBUTION (฿)</label><input id="eg-monthly" type="text" inputmode="none" min="0" placeholder="0" style="width:100%;border:none;outline:none;font-size:13px;font-weight:500;color:var(--slate-900);background:none;font-family:inherit"></div>
+    <div class="form-field" style="margin-bottom:10px"><label>TARGET DATE</label><div style="display:flex;gap:8px"><select id="eg-due-m" style="flex:1.4;border:none;outline:none;font-size:13px;font-weight:500;color:var(--slate-900);background:none;font-family:inherit;appearance:none;-webkit-appearance:none"></select><select id="eg-due-y" style="flex:1.2;border:none;outline:none;font-size:13px;font-weight:500;color:var(--slate-900);background:none;font-family:inherit;appearance:none;-webkit-appearance:none"></select></div></div>
+    <div class="form-field" style="margin-bottom:10px"><label>CATEGORY</label><select id="eg-category"></select></div>
+    <div class="form-field" style="margin-bottom:14px"><label>COLOR</label><select id="eg-color" style="width:100%;border:none;outline:none;font-size:13px;font-weight:500;color:var(--slate-900);background:none;font-family:inherit;appearance:none"><option value="#22c55e,#ecfdf5">🟢 Green</option><option value="#6366f1,#eef2ff">🟣 Indigo</option><option value="#f59e0b,#fffbeb">🟡 Amber</option><option value="#0d9488,#ccfbf1">🩵 Teal</option><option value="#ef4444,#fef2f2">🔴 Red</option><option value="#8b5cf6,#f5f3ff">💜 Purple</option></select></div>
+    <div class="modal-btn-row"><button class="modal-cancel" onclick="closeModal('edit-goal')">Cancel</button><button class="modal-confirm" style="background:#22c55e" onclick="confirmEditGoal()">Save changes</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Edit instalment -->
+<div class="modal-overlay hidden" id="modal-edit-inst">
+  <div class="modal-sheet" style="padding-bottom:48px">
+    <div class="modal-title">Edit instalment</div>
+    <div class="modal-sub">Update your instalment plan</div>
+    <div class="form-field" style="margin-bottom:10px"><label>ITEM NAME</label><input id="ei-name" type="text" placeholder="e.g. 📱 iPhone 16" style="width:100%;border:none;outline:none;font-size:13px;font-weight:500;color:var(--slate-900);background:none;font-family:inherit"></div>
+    <div class="form-field" style="margin-bottom:10px"><label>CATEGORY</label><select id="ei-category"></select></div>
+    <div class="form-field" style="margin-bottom:10px"><label>TOTAL AMOUNT (฿)</label><input id="ei-total" type="text" inputmode="none" min="0" placeholder="0" style="width:100%;border:none;outline:none;font-size:18px;font-weight:700;color:var(--slate-900);background:none;font-family:inherit"></div>
+    <div class="form-field" style="margin-bottom:10px"><label>MONTHLY PAYMENT (฿)</label><input id="ei-monthly" type="text" inputmode="none" min="0" placeholder="0" style="width:100%;border:none;outline:none;font-size:13px;font-weight:500;color:var(--slate-900);background:none;font-family:inherit"></div>
+    <div class="form-field" style="margin-bottom:10px"><label>TOTAL MONTHS</label><input id="ei-total-mo" type="text" inputmode="none" min="1" placeholder="e.g. 12" style="width:100%;border:none;outline:none;font-size:13px;font-weight:500;color:var(--slate-900);background:none;font-family:inherit"></div>
+    <div class="form-field" style="margin-bottom:10px"><label>MONTHS ALREADY PAID</label><input id="ei-paid" type="text" inputmode="none" min="0" placeholder="0" style="width:100%;border:none;outline:none;font-size:13px;font-weight:500;color:var(--slate-900);background:none;font-family:inherit"></div>
+    <div class="form-field" style="margin-bottom:14px"><label>START DATE</label><div style="display:flex;gap:8px"><select id="ei-start-d" style="flex:1;border:none;outline:none;font-size:13px;font-weight:500;color:var(--slate-900);background:none;font-family:inherit;appearance:none;-webkit-appearance:none"></select><select id="ei-start-m" style="flex:1.4;border:none;outline:none;font-size:13px;font-weight:500;color:var(--slate-900);background:none;font-family:inherit;appearance:none;-webkit-appearance:none"></select><select id="ei-start-y" style="flex:1.2;border:none;outline:none;font-size:13px;font-weight:500;color:var(--slate-900);background:none;font-family:inherit;appearance:none;-webkit-appearance:none"></select></div></div>
+    <div class="form-field" style="margin-bottom:14px"><label>COLOR</label><select id="ei-color" style="width:100%;border:none;outline:none;font-size:13px;font-weight:500;color:var(--slate-900);background:none;font-family:inherit;appearance:none"><option value="#6366f1">🟣 Indigo</option><option value="#0d9488">🩵 Teal</option><option value="#f59e0b">🟡 Amber</option><option value="#22c55e">🟢 Green</option><option value="#8b5cf6">💜 Purple</option><option value="#ef4444">🔴 Red</option></select></div>
+    <div class="modal-btn-row"><button class="modal-cancel" onclick="closeModal('edit-inst')">Cancel</button><button class="modal-confirm" style="background:var(--indigo)" onclick="confirmEditInst()">Save changes</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Edit transaction -->
+<div class="modal-overlay hidden" id="modal-edit-tx">
+  <div class="modal-sheet" style="padding-bottom:48px">
+    <div class="modal-title">Edit transaction</div>
+    <div class="modal-sub">Update and re-sync to Google Sheets</div>
+    <div style="display:flex;background:var(--slate-100);border-radius:12px;padding:4px;margin-bottom:14px">
+      <button id="edit-btn-expense" onclick="setEditType('Expense')" style="flex:1;padding:9px;text-align:center;border-radius:9px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:none;color:var(--slate-400);transition:all 0.2s">Expense</button>
+      <button id="edit-btn-income"  onclick="setEditType('Income')"  style="flex:1;padding:9px;text-align:center;border-radius:9px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:none;color:var(--slate-400);transition:all 0.2s">Income</button>
+    </div>
+    <div class="form-field" style="margin-bottom:10px"><label>AMOUNT (THB)</label><input id="edit-amount" type="text" inputmode="none" min="0" placeholder="0" style="width:100%;border:none;outline:none;font-size:22px;font-weight:700;color:var(--slate-900);background:none;font-family:inherit"></div>
+    <div class="form-field" style="margin-bottom:10px"><label>CATEGORY</label><select id="edit-category"></select></div>
+    <div class="form-field" style="margin-bottom:10px"><label>DESCRIPTION</label><input id="edit-desc" type="text" placeholder="e.g. Grab delivery" style="width:100%;border:none;outline:none;font-size:13px;font-weight:500;color:var(--slate-900);background:none;font-family:inherit"></div>
+    <div class="form-field" style="margin-bottom:10px"><label>DATE</label><div style="display:flex;gap:8px"><select id="edit-date-d" style="flex:1;border:none;outline:none;font-size:13px;font-weight:500;color:var(--slate-900);background:none;font-family:inherit;appearance:none;-webkit-appearance:none"></select><select id="edit-date-m" style="flex:1.4;border:none;outline:none;font-size:13px;font-weight:500;color:var(--slate-900);background:none;font-family:inherit;appearance:none;-webkit-appearance:none"></select><select id="edit-date-y" style="flex:1.2;border:none;outline:none;font-size:13px;font-weight:500;color:var(--slate-900);background:none;font-family:inherit;appearance:none;-webkit-appearance:none"></select></div></div>
+    <div class="form-field" style="margin-bottom:14px"><label>NOTES (optional)</label><input id="edit-notes" type="text" placeholder="Optional note" style="width:100%;border:none;outline:none;font-size:13px;font-weight:500;color:var(--slate-900);background:none;font-family:inherit"></div>
+    <div class="modal-btn-row"><button class="modal-cancel" onclick="closeModal('edit-tx')">Cancel</button><button class="modal-confirm" style="background:var(--slate-900)" onclick="confirmEditTx()">Save changes</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Add savings to goal -->
+<div class="modal-overlay hidden" id="modal-goal">
+  <div class="modal-sheet">
+    <div class="modal-title" id="modal-goal-title">Add savings</div>
+    <div class="modal-sub" id="modal-goal-sub">How much did you save?</div>
+    <input class="modal-input" id="modal-goal-amount" type="text" inputmode="none" min="0" placeholder="Amount (฿)">
+    <input class="modal-input" id="modal-goal-note" type="text" placeholder="Note (optional — e.g. Monthly deposit)" style="margin-top:8px">
+    <div style="margin-top:10px"><label style="font-size:10px;color:var(--slate-400);font-weight:600;letter-spacing:0.04em;display:block;margin-bottom:5px">DATE</label><div style="display:flex;gap:8px"><select id="mg-date-d"></select><select id="mg-date-m"></select><select id="mg-date-y"></select></div></div>
+    <div class="modal-btn-row"><button class="modal-cancel" onclick="closeModal('goal')">Cancel</button><button class="modal-confirm" style="background:#22c55e" onclick="confirmAddSavings()">Add savings</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Mark instalment paid -->
+<div class="modal-overlay hidden" id="modal-inst">
+  <div class="modal-sheet">
+    <div class="modal-title" id="modal-inst-title">Mark as paid</div>
+    <div class="modal-sub" id="modal-inst-sub">Confirm this month's payment</div>
+    <div class="modal-detail" id="modal-inst-detail"></div>
+    <div id="modal-inst-link-note" style="display:flex;align-items:flex-start;gap:8px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:10px;padding:10px 12px;margin:12px 0 4px"></div>
+    <div class="modal-btn-row"><button class="modal-cancel" onclick="closeModal('inst')">Cancel</button><button class="modal-confirm" style="background:#2563eb" onclick="confirmMarkPaid()">Mark as paid</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Payoff simulator -->
+<div class="modal-overlay hidden" id="modal-payoff">
+  <div class="modal-sheet">
+    <div class="modal-title">Pay off faster</div>
+    <div class="modal-sub" id="payoff-sub"></div>
+    <div id="payoff-current"></div>
+    <div class="payoff-slider-row"><label>Extra per month</label><span id="payoff-extra-val">฿0</span></div>
+    <input type="range" id="payoff-slider" class="sim-slider" min="0" max="10000" step="100" value="0" oninput="updatePayoffSim()">
+    <div class="payoff-result" id="payoff-result"></div>
+    <div class="payoff-note">0% plan — paying early clears the debt sooner and frees up that cash. It doesn't lower the total you owe.</div>
+    <div class="modal-btn-row"><button class="modal-cancel" onclick="closeModal('payoff')">Close</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Debt-free snowball/avalanche planner -->
+<div class="modal-overlay hidden" id="modal-snowball">
+  <div class="modal-sheet">
+    <div class="modal-title">Debt-free plan</div>
+    <div class="modal-sub">All active instalments, one combined payoff date</div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button id="snow-strat-snowball" class="entry-type-btn active" style="padding:9px 6px" onclick="setSnowballStrategy('snowball')">Snowball<div style="font-size:9px;font-weight:500;margin-top:2px;opacity:0.75">Smallest balance first</div></button>
+      <button id="snow-strat-avalanche" class="entry-type-btn" style="padding:9px 6px" onclick="setSnowballStrategy('avalanche')">Avalanche<div style="font-size:9px;font-weight:500;margin-top:2px;opacity:0.75">Highest payment first</div></button>
+    </div>
+    <div class="payoff-slider-row"><label>Extra per month</label><span id="snow-extra-val">฿0</span></div>
+    <input type="range" id="snow-slider" class="sim-slider" min="0" max="10000" step="100" value="0" oninput="updateSnowballPlan()">
+    <div id="snow-order"></div>
+    <div class="payoff-result" id="snow-result"></div>
+    <div class="payoff-note">Each plan's own monthly payment rolls into the next once it's paid off — that's the "snowball" effect. Still 0% plans, so this is about timing and cash flow, not interest saved.</div>
+    <div class="modal-btn-row"><button class="modal-cancel" onclick="closeModal('snowball')">Close</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Set budget -->
+<div class="modal-overlay hidden" id="modal-budget">
+  <div class="modal-sheet">
+    <div class="modal-title" id="modal-budget-title">Set budget</div>
+    <div class="modal-sub" id="modal-budget-sub">Monthly limit for this category</div>
+    <input class="modal-input" id="modal-budget-amount" type="text" inputmode="none" min="0" placeholder="0">
+    <div class="modal-btn-row"><button class="modal-cancel" onclick="closeModal('budget')">Cancel</button><button class="modal-confirm" style="background:#0d9488" onclick="confirmSetBudget()">Save budget</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Add budget category -->
+<div class="modal-overlay hidden" id="modal-budget-add">
+  <div class="modal-sheet">
+    <div class="modal-title">Add budget category</div>
+    <div class="modal-sub">Choose a category and set a monthly limit</div>
+    <div class="form-field" style="margin-bottom:10px"><label>CATEGORY</label><select id="modal-budget-cat"></select></div>
+    <input class="modal-input" id="modal-budget-new-amount" type="text" inputmode="none" min="0" placeholder="Monthly limit (฿)">
+    <div class="modal-btn-row"><button class="modal-cancel" onclick="closeModal('budget-add')">Cancel</button><button class="modal-confirm" style="background:#0d9488" onclick="confirmAddBudget()">Add budget</button></div>
+  </div>
+</div>
+
+<div class="sync-bar hidden" id="sync-bar">
+  <div style="display:flex;align-items:center;gap:6px">
+    <div class="sync-dot" id="sync-dot"></div>
+    <span id="sync-msg">Connected to Google Sheets</span>
+  </div>
+  <button class="sync-btn" onclick="manualSync()">Sync now</button>
+</div>
+
+<!-- HOME -->
+<div class="page active" id="page-home">
+  <div class="home-header">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="avatar">N</div>
+      <div><div class="greeting">Here's your financial snapshot for today,</div><div style="font-size:15px;font-weight:700;color:var(--slate-900)">Nut 👋</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="notif-btn" id="refresh-btn" onclick="refreshApp()" title="Refresh"><i class="ti ti-refresh" style="font-size:17px;color:var(--slate-500)"></i></button>
+      <button class="privacy-btn" id="privacy-btn" onclick="togglePrivacy()" title="Hide amounts"><i class="ti ti-eye" id="privacy-icon" style="font-size:17px;color:var(--slate-500)"></i></button>
+      <button class="notif-btn" onclick="goTo('settings')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--slate-500)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+    </div>
+  </div>
+  <div class="balance-card">
+    <div class="balance-label">CURRENT BALANCE</div>
+    <div class="balance-amount" id="home-balance">฿0</div>
+    <div class="balance-ie">
+      <div class="bie-item"><div class="bie-dot" style="background:var(--green-strong)"></div><div><div class="bie-lbl">Income</div><div class="bie-val" id="home-inc">฿0</div></div></div>
+      <div class="bie-divider"></div>
+      <div class="bie-item"><div class="bie-dot" style="background:var(--red-strong)"></div><div><div class="bie-lbl">Expenses</div><div class="bie-val" id="home-exp">฿0</div></div></div>
+    </div>
+    <div class="balance-actions">
+      <button class="bal-action c-hist" onclick="goTo('history')"><div class="bal-action-icon"><i class="ti ti-history"></i></div><div class="bal-action-label">History</div></button>
+      <button class="bal-action c-budget" onclick="goTo('budget')"><div class="bal-action-icon"><i class="ti ti-wallet"></i></div><div class="bal-action-label">Budget</div></button>
+      <button class="bal-action c-export" onclick="goTo('calendar')"><div class="bal-action-icon"><i class="ti ti-calendar"></i></div><div class="bal-action-label">Calendar</div></button>
+      <button class="bal-action c-sync" onclick="goTo('recurring')"><div class="bal-action-icon"><i class="ti ti-refresh"></i></div><div class="bal-action-label">Recurring</div></button>
+    </div>
+  </div>
+  <div id="home-safe-card" class="safe-card collapsed" style="display:none" onclick="toggleSafeCard()">
+    <div class="safe-top">
+      <span class="safe-cap">Safe to spend</span>
+      <span class="safe-days" id="safe-days">—</span>
+    </div>
+    <div class="safe-main">
+      <div class="safe-main-l"><span class="safe-num" id="safe-num">฿0</span><span class="safe-perday" id="safe-perday"></span></div>
+      <span class="safe-chev" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
+    </div>
+    <div class="safe-hint" id="safe-hint" style="display:none"></div>
+    <div class="safe-bd">
+      <div class="safe-bd-row"><span>Expected income</span><span class="safe-bd-pos" id="safe-inc">+฿0</span></div>
+      <div class="safe-bd-row"><span>Spent so far</span><span id="safe-spent">−฿0</span></div>
+      <div class="safe-bd-row"><span>Bills &amp; instalments due</span><span id="safe-bills">−฿0</span></div>
+      <div class="safe-bd-row" id="safe-est-income-row" style="display:none;cursor:pointer" onclick="event.stopPropagation();goTo('estbills')"><span>Estimated income <i class="ti ti-chevron-right" style="font-size:11px;color:var(--slate-300)" aria-hidden="true"></i></span><span class="safe-bd-pos" id="safe-est-income">+฿0</span></div>
+      <div class="safe-bd-row" id="safe-est-row" style="display:none;cursor:pointer" onclick="event.stopPropagation();goTo('estbills')"><span>Estimated bills <i class="ti ti-chevron-right" style="font-size:11px;color:var(--slate-300)" aria-hidden="true"></i></span><span id="safe-est">−฿0</span></div>
+      <div class="safe-bd-row" id="safe-est-net-row" style="display:none;font-weight:600"><span>Estimated net</span><span id="safe-est-net">฿0</span></div>
+      <div class="safe-bd-row safe-bd-total"><span>Safe to spend</span><span id="safe-total">฿0</span></div>
+      <div style="text-align:center;margin-top:6px"><button onclick="event.stopPropagation();goTo('forecast')" style="background:none;border:none;font-size:11px;font-weight:600;color:var(--indigo);cursor:pointer;font-family:inherit;padding:4px">See full forecast →</button></div>
+    </div>
+  </div>
+  <div id="notif-banners"></div>
+  <div class="chart-section">
+    <div class="chart-header">
+      <span class="section-label">Spending</span>
+      <div class="period-pills">
+        <button class="period-pill active" onclick="setChartPeriod('1W',this)">1W</button>
+        <button class="period-pill" onclick="setChartPeriod('1M',this)">1M</button>
+        <button class="period-pill" onclick="setChartPeriod('3M',this)">3M</button>
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-amount" id="chart-amount">฿0</div>
+      <div class="chart-sub">Total spent this week</div>
+      <div style="display:flex;gap:14px;font-size:9px;color:var(--slate-400);margin:2px 0 4px">
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:2px;background:var(--indigo)"></span>This period</span>
+        <span id="chart-avg-legend" style="display:none;align-items:center;gap:4px"><span style="width:10px;height:0;border-top:2px dashed var(--slate-300)"></span>Recent average</span>
+      </div>
+      <svg width="100%" height="64" viewBox="0 0 300 64" preserveAspectRatio="none">
+        <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--indigo)" stop-opacity="0.15"/><stop offset="100%" stop-color="var(--indigo)" stop-opacity="0"/></linearGradient></defs>
+        <polygon id="chart-area" fill="url(#cg)"/>
+        <polyline id="chart-avg-line" fill="none" stroke="var(--slate-300)" stroke-width="1.5" stroke-dasharray="4,3" stroke-linejoin="round" stroke-linecap="round"/>
+        <polyline id="chart-line" fill="none" stroke="var(--indigo)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+      </svg>
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--slate-400);margin-top:4px"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+    </div>
+  </div>
+  <div id="home-nw-card"></div>
+  <div id="home-estbills-card"></div>
+  <div class="recurring-banner" id="recurring-banner">
+    <div class="recurring-banner-title">Suggested this month</div>
+    <div id="recurring-suggestions"></div>
+    <button onclick="dismissRecurringSuggestions()" style="margin-top:8px;font-size:10px;color:var(--slate-400);background:none;border:none;cursor:pointer;font-family:inherit;text-decoration:underline">Dismiss</button>
+  </div>
+  <div class="tx-section">
+    <div class="sec-hd"><span class="section-label">Recent</span><button class="see-all" onclick="goTo('history')">See all</button></div>
+    <div class="card" style="padding:6px 14px" id="home-tx-list"></div>
+  </div>
+  <div class="spacer"></div>
+</div>
+
+<!-- GOALS -->
+<div class="page" id="page-goals">
+  <div class="goals-header">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button onclick="goTo(_prevPage||'home')" style="width:32px;height:32px;border-radius:50%;background:var(--slate-100);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--slate-500)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <div><div class="meta">Overview</div><div class="page-title">Your Goals</div></div>
+      </div>
+      <button class="goals-filter-btn" id="goals-filter-btn" onclick="toggleGoalsFilter()"><i class="ti ti-adjustments-horizontal" style="font-size:13px"></i><span id="goals-filter-btn-label">Filter</span></button>
+    </div>
+  </div>
+  <div class="goals-filter-panel" id="goals-filter-panel">
+    <div class="period-picker-hd">FILTER GOALS</div>
+    <div class="goals-filter-row">
+      <select class="goals-filter-sel" id="goals-filter-status" onchange="renderGoals()"><option value="all">All goals</option><option value="active">Active</option><option value="completed">Completed</option></select>
+      <select class="goals-filter-sel" id="goals-filter-year" onchange="renderGoals()"><option value="">Any target year</option></select>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:10px"><button onclick="clearGoalsFilters()" style="font-size:11px;font-weight:600;color:var(--slate-400);background:none;border:none;cursor:pointer;font-family:inherit;text-decoration:underline">Clear all</button></div>
+  </div>
+  <div class="goals-active-filters" id="goals-active-filters"></div>
+  <div class="goals-summary">
+    <div class="gsumm"><div class="gsumm-lbl">Total saved</div><div class="gsumm-val" id="goals-total-saved">฿0</div></div>
+    <div class="gsumm"><div class="gsumm-lbl">Active goals</div><div class="gsumm-val" id="goals-active">0</div></div>
+    <div class="gsumm"><div class="gsumm-lbl">Avg. progress</div><div class="gsumm-val" id="goals-avg-pct">0%</div></div>
+  </div>
+  <div class="goals-grid" id="goals-list"></div>
+  <div class="spacer"></div>
+</div>
+
+<!-- ANALYTICS -->
+<div class="page" id="page-analytics">
+  <div class="an-header-block">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button onclick="goTo(_prevPage||'home')" style="width:32px;height:32px;border-radius:50%;background:var(--slate-100);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--slate-500)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <div><div class="an-header-meta">Monthly view</div><div class="an-header-title">Analytics</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+<button class="period-today-btn" onclick="showMonthlyReport()" style="padding:6px 10px;font-size:11px">Report</button>
+<button class="period-today-btn" onclick="analyticsGoToday()" style="padding:6px 10px;font-size:11px">Today</button>
+        <button class="an-filter-chip" id="an-filter-chip" onclick="toggleAnalyticsDropdown()" aria-label="Select period">
+          <i class="ti ti-calendar"></i><span id="an-filter-label">Jun 2026</span><i class="ti ti-chevron-down"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- Period picker: year first, then month, apply button -->
+  <div class="period-picker hidden" id="an-picker">
+    <div class="period-picker-hd">SELECT PERIOD</div>
+    <div class="period-picker-row">
+      <div class="period-sel-wrap" style="max-width:100px">
+        <select id="an-sel-year"></select>
+        <i class="ti ti-chevron-down period-sel-arrow" aria-hidden="true"></i>
+      </div>
+      <div class="period-sel-wrap">
+        <select id="an-sel-month"></select>
+        <i class="ti ti-chevron-down period-sel-arrow" aria-hidden="true"></i>
+      </div>
+      <button class="period-today-btn" onclick="applyAnalyticsPicker()" style="background:var(--slate-900);color:var(--white);border-color:var(--slate-900)">Apply</button>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 20px 0">
+    <div class="card" style="padding:12px 14px"><div style="font-size:9px;color:var(--slate-400);margin-bottom:4px">Income</div><div style="font-size:16px;font-weight:700;color:var(--green-strong)" id="an-inc">฿0</div></div>
+    <div class="card" style="padding:12px 14px"><div style="font-size:9px;color:var(--slate-400);margin-bottom:4px">Expenses</div><div style="font-size:16px;font-weight:700;color:var(--red-strong)" id="an-exp">฿0</div></div>
+    <div class="card" style="padding:12px 14px"><div style="font-size:9px;color:var(--slate-400);margin-bottom:4px">Net savings</div><div style="font-size:16px;font-weight:700;color:var(--slate-900)" id="an-net">฿0</div></div>
+    <div class="card" style="padding:12px 14px"><div style="font-size:9px;color:var(--slate-400);margin-bottom:4px">Savings rate</div><div style="font-size:16px;font-weight:700;color:var(--slate-900)" id="an-rate">0%</div></div>
+  </div>
+  <div class="an-donut-card">
+    <div class="an-donut-card-header">Spending by category</div>
+    <div class="an-donut-wrap" style="padding:8px 14px 10px">
+      <svg id="an-donut-svg" width="110" height="110" viewBox="0 0 110 110" style="flex-shrink:0;cursor:pointer" onclick="handleDonutSvgTap(event)">
+        <g id="an-donut-arcs"></g>
+        <text id="an-donut-center-pct" x="55" y="48" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">0%</text>
+        <text id="an-donut-center-lbl" x="55" y="64" text-anchor="middle" font-size="10" fill="#94a3b8">saved</text>
+      </svg>
+      <div class="an-donut-legend" id="an-donut-legend"></div>
+    </div>
+  </div>
+  <div class="an-donut-detail an-donut-card" id="an-donut-detail" style="margin-top:8px">
+    <div class="an-detail-inner">
+      <div class="an-detail-header"><div class="an-detail-dot" id="an-detail-dot"></div><div class="an-detail-name" id="an-detail-name">—</div><span class="an-detail-hint">tap again to close</span></div>
+      <div class="an-detail-stats">
+        <div class="an-detail-stat"><div class="an-detail-stat-val" id="an-detail-amt">฿0</div><div class="an-detail-stat-lbl">Total spent</div></div>
+        <div class="an-detail-stat"><div class="an-detail-stat-val" id="an-detail-pct">0%</div><div class="an-detail-stat-lbl">Of expenses</div></div>
+        <div class="an-detail-stat"><div class="an-detail-stat-val" id="an-detail-count">0</div><div class="an-detail-stat-lbl">Transactions</div></div>
+      </div>
+      <div class="an-detail-txlist" id="an-detail-txlist"></div>
+      <div class="an-detail-see-all" id="an-detail-see-all" onclick="donutGoToHistory()">
+        <span class="an-detail-see-all-lbl" id="an-detail-see-all-lbl">See all in History</span>
+        <span class="an-detail-see-all-arr">→</span>
+      </div>
+    </div>
+  </div>
+  <div style="margin:12px 20px 0">
+    <div class="sec-hd" style="margin-bottom:8px"><span class="section-label" id="an-year-label">Yearly overview</span></div>
+    <div id="an-year-summary" style="display:flex;gap:8px"></div>
+  </div>
+  <!-- Goal activity section -->
+  <div id="goal-spend-section" style="display:none;margin:14px 20px 0">
+    <div class="goal-spend-section">
+      <div class="goal-spend-section-hd"><i class="ti ti-flag" style="font-size:13px"></i> Goal activity this month — not included in stats above</div>
+      <div id="goal-spend-rows"></div>
+    </div>
+  </div>
+  <!-- Savings rate trend — 12 months -->
+  <div class="rate-chart-wrap" id="rate-chart-wrap">
+    <div class="rate-chart-hd">Savings rate — last 12 months</div>
+    <div id="rate-chart-svg"></div>
+    <div id="rate-chart-axis" style="display:flex;justify-content:space-between;font-size:9px;color:var(--slate-400);margin-top:4px"></div>
+  </div>
+  <!-- Month-over-month comparison (C+E combined) -->
+  <div style="margin:14px 20px 0" id="mom-container">
+    <div class="sec-hd" style="margin-bottom:8px"><span class="section-label" id="mom-section-label">vs last month</span></div>
+    <div class="card" style="padding:12px 14px" id="mom-section"></div>
+  </div>
+  <div class="spacer"></div>
+</div>
+
+<!-- INSTALLMENTS -->
+<div class="page" id="page-installments">
+  <div class="inst-header" style="display:flex;align-items:center;gap:12px"><button onclick="goTo(_prevPage||'home')" style="width:32px;height:32px;border-radius:50%;background:var(--slate-100);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--slate-500)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button><div style="flex:1"><div class="meta">Active plans</div><div class="page-title">Instalments</div></div><button class="period-today-btn" onclick="openSnowballPlanner()" style="padding:6px 10px;font-size:11px;display:flex;align-items:center;gap:4px;white-space:nowrap">❄️ Debt-free plan</button></div>
+  <div class="inst-summary">
+    <div class="gsumm"><div class="gsumm-lbl">Monthly burden</div><div class="gsumm-val" id="inst-monthly">฿0</div></div>
+    <div class="gsumm"><div class="gsumm-lbl">Remaining debt</div><div class="gsumm-val" id="inst-balance">฿0</div></div>
+    <div class="gsumm"><div class="gsumm-lbl">Active plans</div><div class="gsumm-val" id="inst-count">0</div></div>
+  </div>
+  <div id="inst-income-warning" style="margin:8px 20px 0;display:none;padding:10px 14px;border-radius:var(--radius-sm);font-size:11px;font-weight:600"></div>
+  <!-- Instalment filter row -->
+  <div style="display:flex;gap:8px;padding:8px 20px 0">
+    <select id="inst-filter-status" onchange="renderInstallments()"><option value="active" selected>Active only</option><option value="all">All plans</option><option value="done">Paid off</option></select>
+    <select id="inst-filter-sort" onchange="renderInstallments()"><option value="soonest" selected>Soonest to finish</option><option value="monthly">Highest monthly</option><option value="balance">Highest balance</option><option value="name">Name A–Z</option></select>
+  </div>
+  <div id="inst-result-count" style="font-size:10px;color:var(--slate-400);padding:5px 20px 0"></div>
+  <div class="inst-timeline" id="inst-timeline"></div>
+  <div class="inst-grid" id="inst-list"></div>
+  <div class="spacer"></div>
+</div>
+
+<!-- ADD -->
+<div class="page" id="page-add">
+  <div class="add-header"><div class="meta">New entry</div><div class="page-title" id="add-page-title">Add</div></div>
+  <div style="display:flex;gap:8px;margin:14px 20px 0;">
+    <button class="entry-type-btn active" id="etbtn-tx" onclick="setEntryType('tx')"><div style="font-size:18px;margin-bottom:3px">💳</div><div style="font-size:10px;font-weight:600">Transaction</div></button>
+    <button class="entry-type-btn" id="etbtn-goal" onclick="setEntryType('goal')"><div style="font-size:18px;margin-bottom:3px">🎯</div><div style="font-size:10px;font-weight:600">Goal</div></button>
+    <button class="entry-type-btn" id="etbtn-inst" onclick="setEntryType('inst')"><div style="font-size:18px;margin-bottom:3px">📅</div><div style="font-size:10px;font-weight:600">Instalment</div></button>
+  </div>
+  <div id="form-tx">
+    <div class="type-toggle"><button class="type-btn active-exp" id="btn-expense" onclick="setType('Expense')">Expense</button><button class="type-btn" id="btn-income" onclick="setType('Income')">Income</button></div>
+    <div class="amount-input-wrap"><div class="amount-label">AMOUNT (THB)</div><input class="amount-input" id="f-amount" type="text" inputmode="none" min="0" placeholder="0"></div>
+    <div class="form-section">
+      <div class="form-field" id="f-category-field"><label>CATEGORY</label><select id="f-category"></select></div>
+      <div class="split-toggle-row" id="split-toggle-row">
+        <div><div class="split-toggle-lbl">Split across categories</div><div class="split-toggle-sub">Divide this amount into multiple categories</div></div>
+        <button class="toggle" id="toggle-split" onclick="toggleSplit()"></button>
+      </div>
+      <div class="split-editor" id="split-editor" style="display:none">
+        <div class="split-editor-hdr"><span class="lbl">SPLIT ACROSS CATEGORIES</span><span class="tot" id="split-total">฿0</span></div>
+        <div id="split-rows"></div>
+        <button type="button" class="split-add-btn" onclick="addSplitRow()">+ Add category</button>
+        <div class="split-remainder warn" id="split-remainder">฿0 left to allocate</div>
+      </div>
+      <div class="form-field"><label>DESCRIPTION</label><input id="f-desc" type="text" placeholder="e.g. Grab delivery"></div>
+      <div class="form-field"><label>DATE</label><div style="display:flex;gap:8px"><select id="f-date-d" style="flex:1;border:none;outline:none;font-size:13px;font-weight:500;color:var(--slate-900);background:none;font-family:inherit;appearance:none;-webkit-appearance:none"></select><select id="f-date-m" style="flex:1.4;border:none;outline:none;font-size:13px;font-weight:500;color:var(--slate-900);background:none;font-family:inherit;appearance:none;-webkit-appearance:none"></select><select id="f-date-y" style="flex:1.2;border:none;outline:none;font-size:13px;font-weight:500;color:var(--slate-900);background:none;font-family:inherit;appearance:none;-webkit-appearance:none"></select></div></div>
+      <div class="form-field"><label>NOTES (optional)</label><input id="f-notes" type="text" placeholder="Optional note"></div>
+    </div>
+    <div class="sync-indicator"><div class="sync-dot" style="width:7px;height:7px;border-radius:50%;background:var(--slate-300);" id="add-sync-dot"></div><span id="add-sync-label">Will save locally only</span></div>
+    <div class="recurring-toggle-row" id="recurring-toggle-row">
+      <div><div class="recurring-toggle-lbl">Mark as recurring</div><div class="recurring-toggle-sub">Remind me to add this every month</div></div>
+      <button class="toggle" id="toggle-recurring" onclick="toggleRecurring()"></button>
+    </div>
+    <button class="submit-btn" id="btn-add-tx" onclick="submitTx()">Add Transaction</button>
+  </div>
+  <div id="form-goal" style="display:none">
+    <div class="amount-input-wrap"><div class="amount-label">TARGET AMOUNT (THB)</div><input class="amount-input" id="g-target" type="text" inputmode="none" min="0" placeholder="0"></div>
+    <div class="form-section">
+      <div class="form-field"><label>GOAL NAME</label><input id="g-name" type="text" placeholder="e.g. ✈️ Japan trip"></div>
+      <div class="form-field"><label>AMOUNT SAVED SO FAR (฿)</label><input id="g-saved" type="text" inputmode="none" min="0" placeholder="0"></div>
+      <div class="form-field"><label>MONTHLY CONTRIBUTION (฿)</label><input id="g-monthly" type="text" inputmode="none" min="0" placeholder="0"></div>
+      <div class="form-field"><label>TARGET DATE</label><div style="display:flex;gap:8px"><select id="g-due-m" style="flex:1.4;border:none;outline:none;font-size:13px;font-weight:500;color:var(--slate-900);background:none;font-family:inherit;appearance:none;-webkit-appearance:none"></select><select id="g-due-y" style="flex:1.2;border:none;outline:none;font-size:13px;font-weight:500;color:var(--slate-900);background:none;font-family:inherit;appearance:none;-webkit-appearance:none"></select></div></div>
+      <div class="form-field"><label>CATEGORY</label><select id="g-category"></select></div>
+      <div class="form-field"><label>COLOR</label><select id="g-color"><option value="#22c55e,#ecfdf5">🟢 Green</option><option value="#6366f1,#eef2ff">🟣 Indigo</option><option value="#f59e0b,#fffbeb">🟡 Amber</option><option value="#0d9488,#ccfbf1">🩵 Teal</option><option value="#ef4444,#fef2f2">🔴 Red</option><option value="#8b5cf6,#f5f3ff">💜 Purple</option></select></div>
+    </div>
+    <button class="submit-btn" id="btn-add-goal" style="background:#22c55e" onclick="submitGoal()">Add Goal</button>
+  </div>
+  <div id="form-inst" style="display:none">
+    <div class="amount-input-wrap"><div class="amount-label">TOTAL AMOUNT (THB)</div><input class="amount-input" id="i-total" type="text" inputmode="none" min="0" placeholder="0"></div>
+    <div class="form-section">
+      <div class="form-field"><label>ITEM NAME</label><input id="i-name" type="text" placeholder="e.g. 📱 iPhone 16"></div>
+      <div class="form-field"><label>CATEGORY</label><select id="i-category"></select></div>
+      <div class="form-field"><label>MONTHLY PAYMENT (฿)</label><input id="i-monthly" type="text" inputmode="none" min="0" placeholder="0"></div>
+      <div class="form-field"><label>START DATE</label><div style="display:flex;gap:8px"><select id="i-start-d" style="flex:1;border:none;outline:none;font-size:13px;font-weight:500;color:var(--slate-900);background:none;font-family:inherit;appearance:none;-webkit-appearance:none"></select><select id="i-start-m" style="flex:1.4;border:none;outline:none;font-size:13px;font-weight:500;color:var(--slate-900);background:none;font-family:inherit;appearance:none;-webkit-appearance:none"></select><select id="i-start-y" style="flex:1.2;border:none;outline:none;font-size:13px;font-weight:500;color:var(--slate-900);background:none;font-family:inherit;appearance:none;-webkit-appearance:none"></select></div></div>
+      <div class="form-field"><label>TOTAL MONTHS</label><input id="i-total-mo" type="text" inputmode="none" min="1" placeholder="e.g. 12"></div>
+      <div class="form-field"><label>MONTHS ALREADY PAID</label><input id="i-paid" type="text" inputmode="none" min="0" placeholder="0 if new"></div>
+      <div class="form-field"><label>COLOR</label><select id="i-color"><option value="#6366f1">🟣 Indigo</option><option value="#0d9488">🩵 Teal</option><option value="#f59e0b">🟡 Amber</option><option value="#22c55e">🟢 Green</option><option value="#8b5cf6">💜 Purple</option><option value="#ef4444">🔴 Red</option></select></div>
+    </div>
+    <button class="submit-btn" id="btn-add-inst" style="background:var(--indigo)" onclick="submitInst()">Add Instalment</button>
+  </div>
+  <div class="spacer"></div>
+</div>
+
+<!-- EDIT CONTRIBUTION MODAL -->
+<div class="modal-overlay hidden" id="modal-edit-contrib">
+  <div class="modal-sheet">
+    <div class="modal-title">Edit contribution</div>
+    <div class="modal-sub" id="edit-contrib-sub">Update this savings entry</div>
+    <input class="modal-input" id="edit-contrib-amount" type="text" inputmode="none" placeholder="Amount (฿)">
+    <input class="modal-input" id="edit-contrib-note" type="text" placeholder="Note (optional)" style="margin-top:8px">
+    <div style="margin-top:10px"><label style="font-size:10px;color:var(--slate-400);font-weight:600;letter-spacing:0.04em;display:block;margin-bottom:5px">DATE</label><div style="display:flex;gap:8px"><select id="ec-date-d"></select><select id="ec-date-m"></select><select id="ec-date-y"></select></div></div>
+    <div class="modal-btn-row">
+      <button class="modal-cancel" onclick="closeModal('edit-contrib')">Cancel</button>
+      <button class="modal-confirm" style="background:#22c55e" onclick="confirmEditContrib()">Save changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- SPEND FROM GOAL MODAL -->
+<div class="modal-overlay hidden" id="modal-spend-goal">
+  <div class="modal-sheet">
+    <div class="modal-title" id="spend-goal-title">Spend from goal</div>
+    <div class="modal-sub" id="spend-goal-sub">Recording a spend against this goal</div>
+    <input class="modal-input" id="spend-goal-amount" type="text" inputmode="none" min="0" placeholder="Amount (฿)">
+    <input class="modal-input" id="spend-goal-desc" type="text" placeholder="Description (e.g. Flights, Hotel)" style="margin-top:8px">
+    <div style="margin-top:10px"><label style="font-size:10px;color:var(--slate-400);font-weight:600;letter-spacing:0.04em;display:block;margin-bottom:5px">DATE</label><div style="display:flex;gap:8px"><select id="sg-date-d"></select><select id="sg-date-m"></select><select id="sg-date-y"></select></div></div>
+    <div style="font-size:10px;color:var(--slate-400);background:var(--slate-50);border-radius:var(--radius-sm);padding:8px 10px;margin-top:8px;display:flex;align-items:center;gap:5px"><i class="ti ti-info-circle" style="font-size:13px"></i>This will appear in History but won&#39;t affect your monthly Analytics stats.</div>
+    <div class="modal-btn-row"><button class="modal-cancel" onclick="closeModal('spend-goal')">Cancel</button><button class="modal-confirm" style="background:#d97706" onclick="confirmSpendGoal()">Record spend</button></div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="page" id="page-settings">
+  <div class="settings-header" style="display:flex;align-items:center;gap:12px"><button onclick="goTo(_prevPage||'home')" style="width:32px;height:32px;border-radius:50%;background:var(--slate-100);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--slate-500)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button><div><div class="meta">Preferences</div><div class="page-title">Settings</div></div></div>
+  <div class="settings-section">
+    <div class="settings-label">Google Sheets sync</div>
+    <div class="settings-card">
+      <div class="settings-row"><div><div class="settings-row-label">Sheets Web App URL</div><div class="settings-row-sub">Paste your Apps Script URL here</div></div></div>
+      <div style="padding:0 16px 12px;"><div class="form-field" style="background:var(--slate-50)"><label>APPS SCRIPT URL</label><input class="url-input" id="sheets-url" type="url" placeholder="https://script.google.com/macros/s/…/exec"></div></div>
+      <div class="settings-row" onclick="testConnection()"><div><div class="settings-row-label">Test connection</div><div class="settings-row-sub" id="conn-status">Not tested yet</div></div><div class="settings-row-right">→</div></div>
+      <div class="settings-row"><div><div class="settings-row-label">Auto-sync on add</div><div class="settings-row-sub">Post to Sheets when you add a transaction</div></div><button class="toggle on" id="toggle-autosync" onclick="toggleSetting('autosync')"></button></div>
+      <div class="settings-row" onclick="pullAllFromSheets()"><div><div class="settings-row-label">Pull from Google Sheets</div><div class="settings-row-sub" id="last-pull-label">Fetch transactions, budgets, recurring, instalments and goals</div></div><div class="settings-row-right">↓ Pull</div></div>
+      <div class="settings-row" onclick="manualSync()"><div><div class="settings-row-label">Push local data to Sheets</div><div class="settings-row-sub" id="last-sync-label">Never synced</div></div><div class="settings-row-right">↑ Push</div></div>
+      <div class="settings-row" onclick="rebuildInstallmentLog()"><div><div class="settings-row-label">Rebuild instalment log</div><div class="settings-row-sub" id="rebuild-log-sub">Regenerate the log sheet & clear orphan rows</div></div><div class="settings-row-right">↻</div></div>
+    </div>
+  </div>
+  <div class="settings-section">
+    <div class="settings-label">Appearance</div>
+    <div class="settings-card">
+      <div class="settings-row">
+        <div><div class="settings-row-label">Dark mode</div><div class="settings-row-sub">Switch to a dark colour scheme</div></div>
+        <button class="toggle" id="toggle-dark" onclick="toggleDarkMode()"></button>
+      </div>
+    </div>
+  </div>
+  <div class="settings-section">
+    <div class="settings-label">Security</div>
+    <div class="settings-card">
+      <div class="settings-row"><div><div class="settings-row-label">PIN lock</div><div class="settings-row-sub">Require PIN to open app</div></div><button class="toggle on" id="toggle-pin" onclick="toggleSetting('pin')"></button></div>
+      <div class="settings-row" onclick="changePin()"><div><div class="settings-row-label">Change PIN</div><div class="settings-row-sub">Update your 6-digit PIN</div></div><div class="settings-row-right">→</div></div>
+    </div>
+  </div>
+  <div class="settings-section">
+    <div class="settings-label">Recurring</div>
+    <div class="settings-card">
+      <div class="settings-row" onclick="goTo('recurring')"><div><div class="settings-row-label">Recurring transactions</div><div class="settings-row-sub">Manage your monthly recurring items</div></div><div class="settings-row-right">→</div></div>
+      <div class="settings-row" onclick="goTo('estbills')"><div><div class="settings-row-label">Estimated bills</div><div class="settings-row-sub">Forecast bills with amounts that vary, like electric or credit card</div></div><div class="settings-row-right">→</div></div>
+      <div class="settings-row" onclick="goTo('forecast')"><div><div class="settings-row-label">Cash flow forecast</div><div class="settings-row-sub">Project income, expenses and balance for the months ahead</div></div><div class="settings-row-right">→</div></div>
+    </div>
+  </div>
+  <div class="settings-section">
+    <div class="settings-label">Notifications</div>
+    <div class="settings-card">
+      <div class="settings-row"><div><div class="settings-row-label">Instalment due alerts</div><div class="settings-row-sub">Remind me when a payment is due</div></div><button class="toggle" id="toggle-notif" onclick="toggleSetting('notif')"></button></div>
+      <div class="settings-row"><div><div class="settings-row-label">Budget alerts</div><div class="settings-row-sub">Warn when a category hits 80% or 100%</div></div><button class="toggle" id="toggle-notif-budget" onclick="toggleSetting('notifBudget')"></button></div>
+      <div class="settings-row"><div><div class="settings-row-label">Expense log reminder</div><div class="settings-row-sub">Remind if no transactions for 2+ days</div></div><button class="toggle" id="toggle-notif-log" onclick="toggleSetting('notifLog')"></button></div>
+      <div class="settings-row"><div><div class="settings-row-label">Goal progress alerts</div><div class="settings-row-sub">Notify at 50%, 75%, 100% and if no contribution this month</div></div><button class="toggle" id="toggle-notif-goal" onclick="toggleSetting('notifGoal')"></button></div>
+      <div class="settings-row" onclick="requestNotifPermission()"><div><div class="settings-row-label">Enable browser notifications</div><div class="settings-row-sub" id="notif-status">Permission not granted</div></div><div class="settings-row-right">→</div></div>
+    </div>
+  </div>
+  <div class="settings-section">
+    <div class="settings-label">Data</div>
+    <div class="settings-card">
+      <button class="settings-btn" onclick="exportData()">Export transactions as JSON</button>
+      <button class="settings-btn" onclick="exportCSV()">Export transactions as CSV</button>
+      <button class="settings-btn" onclick="rebuildAnalyticsSheet()">Rebuild Analytics sheet in Google Sheets</button>
+      <button class="settings-btn danger" onclick="confirmClearGoals()">Clear all goals</button>
+      <button class="settings-btn danger" onclick="confirmClearInsts()">Clear all instalments</button>
+      <button class="settings-btn danger" onclick="confirmClear()">Clear all local data</button>
+      <button class="settings-btn danger" onclick="resetRecurringData()">Reset recurring list</button>
+      <button class="settings-btn" onclick="fixBalance()">Fix balance (clear blocked rows)</button>
+    </div>
+  </div>
+  <div class="spacer"></div>
+</div>
+
+<!-- RECURRING PAGE -->
+<div class="page" id="page-recurring">
+  <div style="padding:20px 16px 0;display:flex;align-items:center;gap:12px">
+    <button onclick="goTo(_prevPage||'home')" style="width:32px;height:32px;border-radius:50%;background:var(--slate-100);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--slate-500)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <div style="flex:1"><div class="meta">Monthly</div><div class="page-title">Recurring</div></div>
+    <button onclick="openAddRecurringModal()" style="background:#0d9488;color:#fff;border:none;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0">+ Add</button>
+  </div>
+  <div style="margin:14px 16px 0;background:var(--white);border:0.5px solid var(--slate-200);border-radius:var(--radius);">
+    <div id="rec-page-list"></div>
+    <div class="rec-log-all-bar">
+      <span id="rec-pending-label" style="font-size:12px;color:var(--slate-400)"></span>
+      <button class="rec-log-all-btn" id="rec-log-all-btn" onclick="logAllRecurring()">Log all pending</button>
+    </div>
+  </div>
+  <div class="spacer"></div>
+</div>
+
+<!-- ESTIMATED BILLS PAGE -->
+<div class="page" id="page-estbills">
+  <div style="padding:20px 16px 0;display:flex;align-items:center;gap:12px">
+    <button onclick="goTo(_prevPage||'home')" style="width:32px;height:32px;border-radius:50%;background:var(--slate-100);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--slate-500)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <div style="flex:1"><div class="meta">Next month's forecast</div><div class="page-title">Estimated bills</div></div>
+    <button onclick="openAddEstBillModal()" style="background:#0d9488;color:#fff;border:none;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0">+ Add</button>
+  </div>
+  <div style="margin:14px 16px 0;background:var(--white);border:1px solid var(--slate-200);border-radius:var(--radius);padding:14px">
+    <div style="font-size:10px;color:var(--slate-400);margin-bottom:8px">These are forecasts only — they don't affect this month's Safe to spend</div>
+    <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--slate-700);padding:3px 0"><span>Estimated income</span><span id="est-income-val" style="color:var(--green-strong);font-weight:600">+฿0</span></div>
+    <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--slate-700);padding:3px 0"><span>Estimated bills</span><span id="est-expense-val" style="font-weight:600">−฿0</span></div>
+    <div style="display:flex;justify-content:space-between;border-top:0.5px solid var(--slate-100);margin-top:6px;padding-top:8px"><span style="font-size:13px;font-weight:700;color:var(--slate-900)">Estimated net</span><span id="est-net-val" style="font-size:18px;font-weight:800">฿0</span></div>
+  </div>
+  <div style="margin:10px 16px 0;background:var(--white);border:0.5px solid var(--slate-200);border-radius:var(--radius);">
+    <div id="est-page-list"></div>
+    <div class="rec-log-all-bar">
+      <span id="est-pending-label" style="font-size:12px;color:var(--slate-400)"></span>
+    </div>
+  </div>
+  <div style="margin:10px 16px 0;font-size:11px;color:var(--slate-400);line-height:1.5">
+    This is a forecast for next month, not a checklist — it won't disappear when the real bill arrives. Edit the amount here whenever it actually changes; anything left untouched just carries forward automatically.
+  </div>
+  <div class="spacer"></div>
+</div>
+
+<!-- CASH FLOW FORECAST PAGE -->
+<div class="page" id="page-forecast">
+  <div style="padding:20px 16px 0;display:flex;align-items:center;gap:12px">
+    <button onclick="goTo(_prevPage||'home')" style="width:32px;height:32px;border-radius:50%;background:var(--slate-100);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--slate-500)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <div style="flex:1"><div class="meta">Projected forward</div><div class="page-title">Cash flow forecast</div></div>
+  </div>
+
+  <div style="margin:14px 16px 0">
+    <div class="budget-trend-mo" style="display:inline-flex">
+      <button onclick="setForecastHorizon(3,this)">3m</button>
+      <button class="on" onclick="setForecastHorizon(6,this)">6m</button>
+      <button onclick="setForecastHorizon(12,this)">12m</button>
+    </div>
+  </div>
+
+  <div id="forecast-hint" style="display:none;margin:10px 16px 0;background:var(--amber-bg);color:var(--amber-text);font-size:11px;padding:8px 10px;border-radius:var(--radius-sm)">Add your income as a recurring item for an accurate forecast.</div>
+
+  <div style="margin:10px 16px 0;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+    <div style="background:var(--white);border:1px solid var(--slate-200);border-radius:var(--radius);padding:10px">
+      <div style="font-size:9px;color:var(--slate-400)">Avg monthly net</div>
+      <div style="font-size:18px;font-weight:700" id="forecast-avg-net">฿0</div>
+    </div>
+    <div style="background:var(--white);border:1px solid var(--slate-200);border-radius:var(--radius);padding:10px">
+      <div style="font-size:9px;color:var(--slate-400)" id="forecast-end-balance-label">In 6 months</div>
+      <div style="font-size:18px;font-weight:700" id="forecast-end-balance">฿0</div>
+    </div>
+  </div>
+
+  <div style="margin:10px 16px 0;background:var(--white);border:1px solid var(--slate-200);border-radius:var(--radius);padding:10px 6px 4px">
+    <svg id="forecast-chart-svg" width="100%" height="110" viewBox="0 0 300 110" preserveAspectRatio="none"></svg>
+  </div>
+  <div style="margin:8px 16px 0;font-size:10px;color:var(--slate-400);display:flex;gap:14px">
+    <span><span style="display:inline-block;width:8px;height:8px;background:var(--green-strong);border-radius:2px;margin-right:3px;opacity:0.55"></span>Net (bars)</span>
+    <span><span style="display:inline-block;width:8px;height:2px;background:var(--indigo);margin-right:3px;vertical-align:middle"></span>Running balance (line)</span>
+  </div>
+
+  <div style="margin:14px 16px 0;background:var(--white);border:0.5px solid var(--slate-200);border-radius:var(--radius);overflow:hidden" id="forecast-table"></div>
+
+  <div style="margin:10px 16px 0;font-size:11px;color:var(--slate-400);line-height:1.5">
+    Uses Recurring income/expenses, Instalments (dropping off the month after their final payment), and Estimated Bills flagged as repeating. One-off estimates and ad hoc transactions aren't projected — there's no signal for what future months hold.
+  </div>
+  <div class="spacer"></div>
+</div>
+
+<!-- CALENDAR PAGE -->
+<div class="page" id="page-calendar">
+  <div style="padding:16px 16px 0;display:flex;align-items:center;gap:12px">
+      <button onclick="goTo(_prevPage||'home')" style="width:32px;height:32px;border-radius:50%;background:var(--slate-100);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--slate-500)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <div style="flex:1">
+        <div class="meta">Monthly overview</div>
+        <div class="page-title">Calendar</div>
+      </div>
+    <div class="cal-page-nav">
+      <button class="cal-page-nav-btn" onclick="calChangePage(-1)">‹</button>
+      <span class="cal-page-month" id="cal-page-month-lbl">Jun 2026</span>
+      <button class="cal-page-nav-btn" onclick="calChangePage(1)">›</button>
+    </div>
+  </div>
+  <div style="margin:8px 12px 0;position:relative">
+    <i class="ti ti-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;color:#94a3b8;pointer-events:none" aria-hidden="true"></i>
+    <input id="cal-search" type="text" placeholder="Search all transactions…" oninput="calOnSearch()" style="width:100%;border:0.5px solid var(--slate-200);border-radius:var(--radius-sm);padding:9px 12px 9px 32px;font-size:13px;font-family:inherit;outline:none;background:var(--white);color:var(--slate-900)">
+  </div>
+  <div id="cal-search-results" style="display:none;margin:8px 12px 0;background:var(--white);border:0.5px solid var(--slate-200);border-radius:var(--radius);overflow:hidden"></div>
+  <div id="cal-main-content">
+  <div class="cal-summary">
+    <div class="cal-summ-item"><div class="cal-summ-lbl">Income</div><div class="cal-summ-val" style="color:var(--green-strong)" id="cal-summ-inc">฿0</div></div>
+    <div class="cal-summ-item"><div class="cal-summ-lbl">Expenses</div><div class="cal-summ-val" style="color:var(--red-strong)" id="cal-summ-exp">฿0</div></div>
+    <div class="cal-summ-item"><div class="cal-summ-lbl">Transactions</div><div class="cal-summ-val" id="cal-summ-count">0</div></div>
+  </div>
+  <div class="cal-grid-card">
+    <div class="cal-grid" id="cal-page-grid"></div>
+    <div class="cal-ghost-legend" id="cal-ghost-legend" style="display:none"><span class="cal-ghost-dot"></span>Upcoming bill — tap to preview</div>
+  </div>
+  <div id="cal-upcoming-recurring"></div>
+  <div class="cal-detail" id="cal-detail" style="display:none">
+    <div class="cal-detail-hd">
+      <span class="cal-detail-date" id="cal-detail-date">—</span>
+      <span class="cal-detail-net" id="cal-detail-net"></span>
+    </div>
+    <div id="cal-detail-body"></div>
+  </div>
+  </div>
+  <div class="spacer"></div>
+</div>
+
+<!-- HISTORY -->
+<div class="page" id="page-history">
+  <div style="padding:24px 20px 0;display:flex;align-items:center;gap:12px">
+    <button onclick="goTo(_prevPage||'home')" style="width:32px;height:32px;border-radius:50%;background:var(--slate-100);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--slate-500)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <div><div class="meta">All transactions</div><div class="page-title">History</div></div>
+  </div>
+  <div style="margin:12px 20px 0;display:flex;align-items:center;justify-content:space-between">
+    <span style="font-size:13px;font-weight:600;color:var(--slate-900)" id="hist-type-label">All transactions</span>
+    <button class="hist-adv-btn" id="hist-adv-btn" onclick="toggleHistAdv()"><i class="ti ti-adjustments-horizontal" style="font-size:13px"></i><span id="hist-adv-btn-label">Filter</span></button>
+  </div>
+  <div class="hist-adv-panel" id="hist-adv-panel">
+    <div class="hist-adv-row"><select class="hist-adv-sel" id="hist-filter-type" onchange="onHistTypeChange()"><option value="all">All types</option><option value="Expense">Expense</option><option value="Income">Income</option></select></div>
+    <div class="hist-adv-row">
+      <select class="hist-adv-sel" id="hist-filter-year" onchange="renderHistory()"><option value="">All years</option></select>
+      <select class="hist-adv-sel" id="hist-filter-month" onchange="renderHistory()"><option value="">All months</option><option value="0">January</option><option value="1">February</option><option value="2">March</option><option value="3">April</option><option value="4">May</option><option value="5">June</option><option value="6">July</option><option value="7">August</option><option value="8">September</option><option value="9">October</option><option value="10">November</option><option value="11">December</option></select>
+    </div>
+    <div class="hist-adv-row"><select class="hist-adv-sel" id="hist-filter-cat" onchange="renderHistory()"><option value="">All categories</option></select></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:4px"><button onclick="clearHistFilters()" style="font-size:11px;font-weight:600;color:var(--slate-400);background:none;border:none;cursor:pointer;font-family:inherit;text-decoration:underline">Clear all</button></div>
+  </div>
+  <div class="hist-active-filters" id="hist-active-filters"></div>
+  <div style="margin:8px 20px 0;position:relative">
+    <i class="ti ti-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--slate-400)"></i>
+    <input id="hist-search" type="text" placeholder="Search transactions…" style="width:100%;border:1px solid var(--slate-200);border-radius:var(--radius-sm);padding:10px 12px 10px 34px;font-size:13px;font-family:inherit;outline:none;background:var(--white);color:var(--slate-900)" oninput="renderHistory()">
+  </div>
+  <div style="margin:4px 20px 0;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-size:11px;color:var(--slate-400)" id="hist-count">0 transactions</span>
+    <select id="hist-sort" onchange="renderHistory()" style="font-size:11px;color:var(--slate-500);border:none;background:none;font-family:inherit;outline:none;cursor:pointer"><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="highest">Highest amount</option><option value="lowest">Lowest amount</option></select>
+  </div>
+  <div id="hist-list" style="margin:6px 20px 0"></div>
+  <div class="spacer"></div>
+</div>
+
+<!-- BUDGET PAGE — dropdown filter replaces ‹ › nav -->
+<div class="page" id="page-budget">
+  <div class="budget-header" style="display:flex;align-items:center;gap:12px"><button onclick="goTo(_prevPage||'home')" style="width:32px;height:32px;border-radius:50%;background:var(--slate-100);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--slate-500)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button><div><div class="meta">Monthly limits</div><div class="page-title">Budget</div></div></div>
+
+  <!-- Filter row: viewing label + Today + chip -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin:10px 20px 0">
+    <div style="font-size:10px;color:var(--slate-400);font-weight:500" id="budget-viewing-label">Viewing Jun 2026</div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="period-today-btn" onclick="openBudgetAddModal()" style="padding:6px 10px;font-size:11px">+ Add</button>
+      <button class="period-today-btn" onclick="budgetGoToday()" style="padding:6px 10px;font-size:11px">Today</button>
+      <button class="an-filter-chip" id="budget-filter-chip" onclick="toggleBudgetDropdown()" aria-label="Select period">
+        <i class="ti ti-calendar"></i><span id="budget-filter-label">Jun 2026</span><i class="ti ti-chevron-down"></i>
+      </button>
+    </div>
+  </div>
+  <!-- Period picker: year first, then month, apply button -->
+  <div class="period-picker hidden" id="budget-picker">
+    <div class="period-picker-hd">SELECT PERIOD</div>
+    <div class="period-picker-row">
+      <div class="period-sel-wrap" style="max-width:100px">
+        <select id="budget-sel-year"></select>
+        <i class="ti ti-chevron-down period-sel-arrow" aria-hidden="true"></i>
+      </div>
+      <div class="period-sel-wrap">
+        <select id="budget-sel-month"></select>
+        <i class="ti ti-chevron-down period-sel-arrow" aria-hidden="true"></i>
+      </div>
+      <button class="period-today-btn" onclick="applyBudgetPicker()" style="background:var(--slate-900);color:var(--white);border-color:var(--slate-900)">Apply</button>
+    </div>
+  </div>
+
+  <div class="budget-overview" id="budget-overview"></div>
+  <div class="budget-grid" id="budget-grid"></div>
+  <div class="budget-trend-wrap" id="budget-trend-wrap" style="display:none">
+    <div class="budget-trend-hd">
+      <span class="budget-trend-lbl">Spending trend</span>
+      <div class="budget-trend-mo">
+        <button onclick="setBudgetTrendMo(3,this)">3m</button>
+        <button class="on" onclick="setBudgetTrendMo(6,this)">6m</button>
+        <button onclick="setBudgetTrendMo(12,this)">12m</button>
+      </div>
+    </div>
+    <div id="budget-trend-lines"></div>
+  </div>
+  <div class="spacer"></div>
+</div>
+
+<nav class="nav">
+  <button class="nav-btn active" id="nav-home" onclick="goTo('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</button>
+  <button class="nav-btn" id="nav-goals" onclick="goTo('goals')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>Goals</button>
+  <div class="fab-wrap"><button class="fab" onclick="goTo('add')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button></div>
+  <button class="nav-btn" id="nav-installments" onclick="goTo('installments')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Instalment</button>
+  <button class="nav-btn" id="nav-analytics" onclick="goTo('analytics')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Analytics</button>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script src="ui-kit.js?v=20260702s"></script>
+<script src="app-core.js?v=20260702s"></script>
+<script src="app-dashboard.js?v=20260702s"></script>
+<script src="app-instalments-add.js?v=20260702s"></script>
+<script src="app-settings-budget.js?v=20260702s"></script>
+<script src="app-notifications-recurring.js?v=20260702s"></script>
+<script src="app-calendar.js?v=20260702s"></script>
+<script src="app-init.js?v=20260702s"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<!-- CONFIRM DIALOG -->
+<div class="confirm-overlay hidden" id="confirm-overlay" role="alertdialog" aria-modal="true">
+  <div class="confirm-box">
+    <div class="confirm-title" id="confirm-title">Are you sure?</div>
+    <div class="confirm-msg" id="confirm-msg"></div>
+    <div class="confirm-btns">
+      <button class="confirm-cancel" id="confirm-cancel-btn">Cancel</button>
+      <button class="confirm-ok" id="confirm-ok-btn">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- NUMERIC KEYPAD -->
+<div class="nkp-overlay" id="nkp-overlay" aria-modal="true" role="dialog" aria-label="Numeric keypad">
+  <div class="nkp-sheet" id="nkp-sheet">
+    <div class="nkp-bar">
+      <div class="nkp-bar-info">
+        <span class="nkp-label" id="nkp-label">Enter amount</span>
+        <span class="nkp-value" id="nkp-value">฿0</span>
+      </div>
+      <button class="nkp-done" id="nkp-done" onclick="nkpDone()">Done</button>
+    </div>
+    <div class="nkp-grid" id="nkp-grid"></div>
+  </div>
+</div>
+
+<!-- TEXT KEYBOARD (EN / TH) -->
+<div class="tkb-overlay" id="tkb-overlay" aria-modal="true" role="dialog" aria-label="Text keyboard">
+  <div class="tkb-sheet" id="tkb-sheet">
+    <div class="tkb-rows" id="tkb-rows"></div>
+  </div>
+</div>
+<div id="kb-caret" aria-hidden="true"></div>
+
+</body>
+</html>
