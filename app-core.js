@@ -786,6 +786,16 @@ function renderHistory() {
   if(sort==="highest")list.sort((a,b)=>b.amount-a.amount);
   if(sort==="lowest")list.sort((a,b)=>a.amount-b.amount);
   const countEl=document.getElementById("hist-count"); if(countEl)countEl.textContent=list.length+" transaction"+(list.length!==1?"s":"");
+  // Total reflects exactly what's in `list` (same filters, before grouping) — so it
+  // always matches what the person is actually looking at, including when drilled in
+  // from the Analytics donut (category + month + year already applied by then).
+  const totalEl=document.getElementById("hist-total");
+  if (totalEl) {
+    if (!list.length) { totalEl.textContent=""; }
+    else if (histFilter==="Expense") { const exp=list.reduce((s,t)=>s+t.amount,0); totalEl.textContent="Total: −"+fmt(exp); totalEl.style.color="var(--red-strong)"; }
+    else if (histFilter==="Income")  { const inc=list.reduce((s,t)=>s+t.amount,0); totalEl.textContent="Total: +"+fmt(inc); totalEl.style.color="var(--green-strong)"; }
+    else { const {net}=calcSummary(list); totalEl.textContent="Net: "+(net>=0?"+":"−")+fmt(Math.abs(net)); totalEl.style.color = net>=0 ? "var(--green-strong)" : "var(--red-strong)"; }
+  }
   const el=document.getElementById("hist-list"); if(!el)return;
   if(!list.length){el.innerHTML='<div class="empty-state">No transactions found</div>';return;}
   // Date grouping
