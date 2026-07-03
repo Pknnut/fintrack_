@@ -91,9 +91,16 @@ async function deleteGoalContrib(goalIdx, contribIdx) {
   // the same delete+sync logic as a normal History delete, rather than just
   // splicing txs directly, so it correctly handles the rowId/deletedRowIds
   // bookkeeping and doesn't leave the row behind in the sheet.
-  if (removed.txId && txs.some(t => t.id === removed.txId)) {
-    await _doDeleteTx(removed.txId);
+  // Older/reset contributions (pre-dating this fix, or a goal pulled from
+  // Sheets before it) can be missing txId — fall back to matching by goal +
+  // amount + date so the transaction still gets removed instead of orphaned,
+  // but only when the match is unambiguous.
+  let linkedTx = removed.txId ? txs.find(t => t.id === removed.txId) : null;
+  if (!linkedTx) {
+    const candidates = txs.filter(t => t.type === "Expense" && t.toGoal === true && t.goalName === g.name && t.amount === removed.amount && t.date === removed.date);
+    if (candidates.length === 1) linkedTx = candidates[0];
   }
+  if (linkedTx) await _doDeleteTx(linkedTx.id);
   showToast("Contribution removed — " + fmt(removed.amount) + " deducted from saved total");
 }
 

@@ -60,7 +60,16 @@ if (_savedInsts) { INSTALLMENTS.length = 0; INSTALLMENTS.push(..._savedInsts); }
 function migrateGoalStartingBalance(g) {
   const hasHistory = (g.contributions && g.contributions.length) || (g.spends && g.spends.length);
   if (!hasHistory && g.saved > 0) {
-    g.contributions = [{ id: Date.now(), amount: g.saved, note: "Starting balance", date: toDateStr(new Date()) }];
+    // Prefer rebuilding real per-transaction entries (with txId) from any matching
+    // toGoal transactions still in txs, instead of one lump "Starting balance" line.
+    // A lump entry has no txId, so deleting it later can't find the underlying
+    // transaction — it just vanishes from the goal card while staying in History
+    // and Sheets forever. Only fall back to the lump seed when there's truly
+    // nothing to link to (e.g. a goal created with a starting saved amount).
+    const linkedTxs = txs.filter(t => t.type === "Expense" && t.toGoal === true && t.goalName === g.name);
+    g.contributions = linkedTxs.length
+      ? linkedTxs.map(t => ({ id: t.id, amount: t.amount, note: t.notes || "", date: t.date, txId: t.id }))
+      : [{ id: Date.now(), amount: g.saved, note: "Starting balance", date: toDateStr(new Date()) }];
   }
   if (!g.contributions) g.contributions = [];
 }
