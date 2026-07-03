@@ -285,27 +285,6 @@
       <button class="bal-action c-sync" onclick="goTo('recurring')"><div class="bal-action-icon"><i class="ti ti-refresh"></i></div><div class="bal-action-label">Recurring</div></button>
     </div>
   </div>
-  <div id="home-safe-card" class="safe-card collapsed" style="display:none" onclick="toggleSafeCard()">
-    <div class="safe-top">
-      <span class="safe-cap">Safe to spend</span>
-      <span class="safe-days" id="safe-days">—</span>
-    </div>
-    <div class="safe-main">
-      <div class="safe-main-l"><span class="safe-num" id="safe-num">฿0</span><span class="safe-perday" id="safe-perday"></span></div>
-      <span class="safe-chev" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
-    </div>
-    <div class="safe-hint" id="safe-hint" style="display:none"></div>
-    <div class="safe-bd">
-      <div class="safe-bd-row"><span>Expected income</span><span class="safe-bd-pos" id="safe-inc">+฿0</span></div>
-      <div class="safe-bd-row"><span>Spent so far</span><span id="safe-spent">−฿0</span></div>
-      <div class="safe-bd-row"><span>Bills &amp; instalments due</span><span id="safe-bills">−฿0</span></div>
-      <div class="safe-bd-row" id="safe-est-income-row" style="display:none;cursor:pointer" onclick="event.stopPropagation();goTo('estbills')"><span>Estimated income <i class="ti ti-chevron-right" style="font-size:11px;color:var(--slate-300)" aria-hidden="true"></i></span><span class="safe-bd-pos" id="safe-est-income">+฿0</span></div>
-      <div class="safe-bd-row" id="safe-est-row" style="display:none;cursor:pointer" onclick="event.stopPropagation();goTo('estbills')"><span>Estimated bills <i class="ti ti-chevron-right" style="font-size:11px;color:var(--slate-300)" aria-hidden="true"></i></span><span id="safe-est">−฿0</span></div>
-      <div class="safe-bd-row" id="safe-est-net-row" style="display:none;font-weight:600"><span>Estimated net</span><span id="safe-est-net">฿0</span></div>
-      <div class="safe-bd-row safe-bd-total"><span>Safe to spend</span><span id="safe-total">฿0</span></div>
-      <div style="text-align:center;margin-top:6px"><button onclick="event.stopPropagation();goTo('forecast')" style="background:none;border:none;font-size:11px;font-weight:600;color:var(--indigo);cursor:pointer;font-family:inherit;padding:4px">See full forecast →</button></div>
-    </div>
-  </div>
   <div id="notif-banners"></div>
   <div class="chart-section">
     <div class="chart-header">
