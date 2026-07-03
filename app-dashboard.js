@@ -699,51 +699,11 @@ function instSpendName(t) {
 }
 function renderAnalytics() {
   const mo=analyticsMonth,yr=analyticsYear,allArr=monthTxs(mo,yr);
-  // Separate goal-related transactions from regular ones
+  // Goal transactions (contributions and spends) are excluded from the headline
+  // stats below — saving money isn't spending it, and spending already-saved
+  // money isn't new spending either. See isGoalSpend() in this file.
   const arr = allArr.filter(t => !isGoalSpend(t));
-  const goalArr = allArr.filter(isGoalSpend);
-  // isGoalSpend() now matches BOTH directions (contributions into a goal AND
-  // spends from one) — they're opposite cash movements and must never be summed
-  // together into one figure (that produced a meaningless "total" mixing money
-  // going in with money going out, and made this section impossible to read).
-  const goalContribArr = goalArr.filter(t => t.toGoal === true);
-  const goalSpendArr   = goalArr.filter(t => t.fromGoal === true);
   const {inc,exp,net,rate}=calcSummary(arr);
-  // Render goal activity section
-  const gsSec = document.getElementById("goal-spend-section");
-  const gsRows = document.getElementById("goal-spend-rows");
-  if (gsSec && gsRows && goalArr.length) {
-    gsSec.style.display = "block";
-    const totalContrib = goalContribArr.reduce((s,t)=>s+t.amount, 0);
-    const totalSpend    = goalSpendArr.reduce((s,t)=>s+t.amount, 0);
-    const rowHtml = (t, isContrib) =>
-      '<div class="goal-spend-row">' +
-        '<div><div style="font-size:11px;color:var(--slate-700)">' + (t.desc||(isContrib?"Saved":"Spend")) + '</div>' +
-        '<div style="font-size:10px;color:var(--slate-400)">' + goalSpendName(t) + ' · ' + (t.category||'') + '</div></div>' +
-        '<span style="font-size:11px;font-weight:600;color:' + (isContrib?'var(--teal)':'var(--amber-strong)') + '">' + (isContrib?'→ ':'') + fmt(t.amount) + '</span>' +
-      '</div>';
-    let sectionsHtml = '';
-    if (goalContribArr.length) {
-      sectionsHtml += '<div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;margin:4px 0 2px">Saved to goals</div>' +
-        goalContribArr.map(t=>rowHtml(t,true)).join("") +
-        '<div class="goal-spend-row" style="font-weight:600"><span style="font-size:11px">Total saved</span><span style="font-size:11px;color:var(--teal)">'+fmt(totalContrib)+'</span></div>';
-    }
-    if (goalSpendArr.length) {
-      sectionsHtml += '<div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;margin:8px 0 2px">Spent from goals</div>' +
-        goalSpendArr.map(t=>rowHtml(t,false)).join("") +
-        '<div class="goal-spend-row" style="font-weight:600"><span style="font-size:11px">Total spent</span><span style="font-size:11px;color:var(--amber-strong)">'+fmt(totalSpend)+'</span></div>';
-    }
-    // Net across ALL goal activity this month — not "this goal's" net, since a
-    // contribution and a spend in the same month could belong to two entirely
-    // different goals. Only shown once both directions are present; with only
-    // one direction it'd just repeat that section's own total.
-    if (goalContribArr.length && goalSpendArr.length) {
-      const netGoalActivity = totalContrib - totalSpend;
-      sectionsHtml += '<div style="height:1px;background:var(--slate-200);margin:8px 0"></div>' +
-        '<div class="goal-spend-row" style="font-weight:700"><span style="font-size:11px">Net across all goals</span><span style="font-size:11px;color:'+(netGoalActivity>=0?'var(--teal)':'var(--red-strong)')+'">'+(netGoalActivity>=0?'+':'')+fmt(netGoalActivity)+'</span></div>';
-    }
-    gsRows.innerHTML = sectionsHtml;
-  } else if (gsSec) { gsSec.style.display = "none"; }
   document.getElementById("an-filter-label").textContent=MO[mo]+" "+yr; document.getElementById("an-year-label").textContent="Yearly overview";
   const netEl=document.getElementById("an-net"); document.getElementById("an-inc").textContent=fmt(inc); document.getElementById("an-exp").textContent=fmt(exp); netEl.textContent=fmt(net); netEl.style.color=net>=0?"var(--green-strong)":"var(--red-strong)"; document.getElementById("an-rate").textContent=Math.round(rate*100)+"%";
   const catMap={}; arr.filter(t=>t.type==="Expense").forEach(t=>{catMap[t.category]=(catMap[t.category]||0)+t.amount;});
