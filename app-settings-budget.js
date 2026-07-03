@@ -15,7 +15,7 @@ async function rebuildInstallmentLog() {
   const sub=document.getElementById("rebuild-log-sub"); const prev=sub?sub.textContent:"";
   if(sub)sub.textContent="Rebuilding…";
   setSyncStatus("syncing");
-  const ok=await Promise.race([postToSheets("rebuild_installment_log",{}),new Promise(r=>setTimeout(()=>r(false),10000))]);
+  const ok=await Promise.race([postToSheets("rebuild_installment_log",{}),new Promise(r=>setTimeout(()=>r(false),SYNC_TIMEOUT_BULK))]);
   if(ok){setSyncStatus("ok");showToast("Instalment log rebuilt ✓");if(sub)sub.textContent="Regenerate the log sheet & clear orphan rows";}
   else{setSyncStatus("error");showToast("Rebuild failed — check your URL");if(sub)sub.textContent=prev;}
 }
@@ -167,7 +167,7 @@ async function fetchBudgetsFromSheets(silent = false) {
 }
 async function syncBudgetsToSheets() {
   if(!settings.sheetsUrl)return false;
-  return await Promise.race([postToSheets("save_budgets",{budgets:BUDGETS}),new Promise(r=>setTimeout(()=>r(false),6000))]);
+  return await Promise.race([postToSheets("save_budgets",{budgets:BUDGETS}),new Promise(r=>setTimeout(()=>r(false),SYNC_TIMEOUT_META))]);
 }
 
 let budgetYear = new Date().getFullYear();

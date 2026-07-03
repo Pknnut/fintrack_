@@ -61,7 +61,7 @@ async function confirmEditContrib() {
       try { renderHistory(); } catch(e) { console.warn("renderHistory:", e); }
       if (settings.sheetsUrl) {
         setSyncStatus("syncing");
-        const res = await Promise.race([postToSheetsRaw("update_transaction",{rowId:oldTx.rowId,data:{oldDesc:oldTx.desc||oldTx.description||"",oldAmount:oldTx.amount,date:newDate,type:oldTx.type,category:oldTx.category,description:oldTx.desc,amount:newAmount,notes:newNote,fromGoal:oldTx.fromGoal,toGoal:oldTx.toGoal,goalId:oldTx.goalId,goalName:oldTx.goalName}}),new Promise(r=>setTimeout(()=>r(null),15000))]);
+        const res = await Promise.race([postToSheetsRaw("update_transaction",{rowId:oldTx.rowId,data:{oldDesc:oldTx.desc||oldTx.description||"",oldAmount:oldTx.amount,date:newDate,type:oldTx.type,category:oldTx.category,description:oldTx.desc,amount:newAmount,notes:newNote,fromGoal:oldTx.fromGoal,toGoal:oldTx.toGoal,goalId:oldTx.goalId,goalName:oldTx.goalName}}),new Promise(r=>setTimeout(()=>r(null),SYNC_TIMEOUT_TX))]);
         setSyncStatus(res && !res.error ? "ok" : "error");
       }
     }
@@ -165,7 +165,7 @@ async function confirmSpendGoal() {
     setSyncStatus("syncing");
     const ok = await Promise.race([
       postToSheets("add_transaction", { data: { ...tx } }),
-      new Promise(r => setTimeout(()=>r(false), 6000))
+      new Promise(r => setTimeout(()=>r(false), SYNC_TIMEOUT_TX))
     ]);
     if (ok) { setSyncStatus("ok"); } else { setSyncStatus("error"); }
   }
@@ -387,7 +387,7 @@ async function addRecurringNow(r, overrideAmt) {
   // pattern as the manual Add form, so a failure is never invisible again.
   if (settings.sheetsUrl && settings.autosync) {
     setSyncStatus("syncing");
-    const res = await Promise.race([postToSheetsRaw("add_transaction",{data:{...tx}}), new Promise(r=>setTimeout(()=>r(null),6000))]);
+    const res = await Promise.race([postToSheetsRaw("add_transaction",{data:{...tx}}), new Promise(r=>setTimeout(()=>r(null),SYNC_TIMEOUT_TX))]);
     if (res && !res.error) {
       setSyncStatus("ok");
       // Backfill rowId so future deletes can find the right Sheets row.
@@ -586,7 +586,7 @@ async function bulkLogRecurring(items) {
     setSyncStatus("syncing");
     const ok = await Promise.race([
       postToSheets("add_transactions_bulk", { data: newTxs }),
-      new Promise(res => setTimeout(() => res(false), 10000))
+      new Promise(res => setTimeout(() => res(false), SYNC_TIMEOUT_BULK))
     ]);
     if (ok) {
       setSyncStatus("ok");

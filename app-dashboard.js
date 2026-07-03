@@ -450,7 +450,7 @@ async function deleteGoal(idx) {
       txs = txs.filter(x => x.id !== t.id);
       unsyncedIds = unsyncedIds.filter(uid => uid !== t.id);
       if (t.rowId && settings.sheetsUrl) {
-        await Promise.race([postToSheets("delete_transaction", {rowId:t.rowId, data:{date:t.date,desc:t.desc||"",amount:t.amount}}), new Promise(r=>setTimeout(()=>r(false),4000))]);
+        await Promise.race([postToSheets("delete_transaction", {rowId:t.rowId, data:{date:t.date,desc:t.desc||"",amount:t.amount}}), new Promise(r=>setTimeout(()=>r(false),SYNC_TIMEOUT_TX))]);
       }
     }
     localStorage.setItem("ft_unsynced", JSON.stringify(unsyncedIds));
@@ -459,7 +459,7 @@ async function deleteGoal(idx) {
   GOALS.splice(idx, 1); saveGoals(); renderGoals();
   if (settings.sheetsUrl) {
     setSyncStatus("syncing");
-    const ok = await Promise.race([postToSheets("delete_goal", {name:goal.name}), new Promise(r=>setTimeout(()=>r(false),6000))]);
+    const ok = await Promise.race([postToSheets("delete_goal", {name:goal.name}), new Promise(r=>setTimeout(()=>r(false),SYNC_TIMEOUT_META))]);
     if (ok) { setSyncStatus("ok"); showToast("Goal deleted" + (deleteLinked ? " + " + linkedTxs.length + " transaction(s) removed" : "") + " ✓"); }
     else { setSyncStatus("error"); showToast("Deleted locally — Sheets sync failed"); }
   } else {

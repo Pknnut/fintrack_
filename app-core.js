@@ -15,6 +15,18 @@ let INSTALLMENTS = [
 ];
 const MO = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const CAT_COLORS = ["#6366f1","#0d9488","#f59e0b","#ef4444","#22c55e","#8b5cf6","#ec4899","#f97316"];
+// Shared Sheets-sync timeout tiers. Previously every call site picked its own
+// number (seen: 4000/5000/6000/10000/12000/15000ms) with no real reasoning —
+// e.g. a transaction delete timed out at 4s in deleteGoal but 15s in the shared
+// _doDeleteTx(), for the identical backend operation. Three deliberate tiers now:
+// - TX: any single transaction add/update/delete — the data that matters most,
+//   worth waiting longer for on a slow connection before falling back to local-only.
+// - META: single non-transaction record (goal/installment/budget/recurring) add,
+//   update, or delete.
+// - BULK: multi-row requests (bulk add, rebuild log) — touches more rows server-side.
+const SYNC_TIMEOUT_TX   = 10000;
+const SYNC_TIMEOUT_META = 6000;
+const SYNC_TIMEOUT_BULK = 12000;
 // Soft background tints for category icons (calendar detail + search).
 // Built FROM the category arrays above by position, not a hand-maintained name
 // lookup — so renaming a category in EXPENSE_CATS/INCOME_CATS can't desync this
@@ -151,7 +163,7 @@ function saveRecurring() {
 async function syncRecurringToSheets() {
   await Promise.race([
     postToSheets("save_recurring", { recurring: RECURRING }),
-    new Promise(r => setTimeout(() => r(false), 6000))
+    new Promise(r => setTimeout(() => r(false), SYNC_TIMEOUT_META))
   ]);
 }
 async function fetchRecurringFromSheets(silent = false) {
@@ -296,7 +308,7 @@ function saveEstBills() {
 async function syncEstBillsToSheets() {
   await Promise.race([
     postToSheets("save_estbills", { estimates: ESTIMATES }),
-    new Promise(r => setTimeout(() => r(false), 6000))
+    new Promise(r => setTimeout(() => r(false), SYNC_TIMEOUT_META))
   ]);
 }
 async function fetchEstBillsFromSheets(silent = false) {
@@ -464,8 +476,8 @@ async function confirmAddSavings() {
   if (settings.sheetsUrl && settings.autosync) {
     setSyncStatus("syncing");
     const [goalOk, txRes] = await Promise.all([
-      Promise.race([postToSheets("update_goal_saved",{data:{name:g.name,newSaved,target:g.target}}),new Promise(r=>setTimeout(()=>r(false),6000))]),
-      Promise.race([postToSheetsRaw("add_transaction",{data:{...tx}}),new Promise(r=>setTimeout(()=>r(null),6000))])
+      Promise.race([postToSheets("update_goal_saved",{data:{name:g.name,newSaved,target:g.target}}),new Promise(r=>setTimeout(()=>r(false),SYNC_TIMEOUT_META))]),
+      Promise.race([postToSheetsRaw("add_transaction",{data:{...tx}}),new Promise(r=>setTimeout(()=>r(null),SYNC_TIMEOUT_TX))])
     ]);
     if (txRes && !txRes.error && txRes.rowId) { const local = txs.find(x => x.id === tx.id); if (local) { local.rowId = txRes.rowId; saveTxs(); } }
     else if (!txRes || txRes.error) { unsyncedIds.push(tx.id); localStorage.setItem("ft_unsynced", JSON.stringify(unsyncedIds)); }
@@ -493,8 +505,8 @@ async function confirmMarkPaid() {
   if (settings.sheetsUrl && settings.autosync) {
     setSyncStatus("syncing");
     const [instOk, txOk] = await Promise.all([
-      Promise.race([postToSheets("update_installment_paid",{planName:p.name,monthsPaid:newPaid}),new Promise(r=>setTimeout(()=>r(false),6000))]),
-      Promise.race([postToSheets("add_transaction",{data:{...tx}}),new Promise(r=>setTimeout(()=>r(false),6000))])
+      Promise.race([postToSheets("update_installment_paid",{planName:p.name,monthsPaid:newPaid}),new Promise(r=>setTimeout(()=>r(false),SYNC_TIMEOUT_META))]),
+      Promise.race([postToSheets("add_transaction",{data:{...tx}}),new Promise(r=>setTimeout(()=>r(false),SYNC_TIMEOUT_TX))])
     ]);
     if (instOk && txOk) { setSyncStatus("ok"); }
     else {
@@ -884,8 +896,8 @@ function openEditGoalModal(idx) {
   document.getElementById("eg-target").value=g.target||""; document.getElementById("eg-saved").value=g.saved||""; document.getElementById("eg-monthly").value=g.monthly||"";
   const now=new Date(),cy=now.getFullYear(); buildMonthSelect("eg-due-m",1); buildYearSelect("eg-due-y",cy,0,5);
   if(g.due&&g.due!=="—"){const parts=g.due.split(" ");if(parts.length===2){const mIdx=MO.indexOf(parts[0])+1,y=parseInt(parts[1]),mSel=document.getElementById("eg-due-m"),ySel=document.getElementById("eg-due-y");for(let i=0;i<mSel.options.length;i++)if(parseInt(mSel.options[i].value)===mIdx){mSel.selectedIndex=i;break;}for(let i=0;i<ySel.options.length;i++)if(parseInt(ySel.options[i].value)===y){ySel.selectedIndex=i;break;}}}
-  const colorVal=g.color+","+(g.bg||"var(--slate-100)"),cSel=document.getElementById("eg-color");
-  for(let i=0;i<cSel.options.length;i++)if(cSel.options[i].value===colorVal){cSel.selectedIndex=i;break;}
+  const colorVal=g.color+","+(g.bg||"var(--slate-100)");
+  catSetValue("eg-color", colorVal);
   const egCatSel=document.getElementById("eg-category");
   catBuildList("eg-category", EXPENSE_CATS);
   const goalCat=GOALS[editGoalIdx].category||"";
@@ -903,7 +915,7 @@ async function confirmEditGoal() {
   const oldGoal={...GOALS[editGoalIdx]},icon=name.match(/^\p{Emoji}/u)?.[0]||oldGoal.icon||"🎯",cleanName=name.replace(/^\p{Emoji}\s*/u,"");
   GOALS[editGoalIdx]={...oldGoal,icon,name:cleanName,target,saved,monthly,due,color:colorVal[0],bg:colorVal[1]||"var(--slate-100)",category:egCat,spends:oldGoal.spends||[]};
   saveGoals(); closeModal("edit-goal"); renderGoals(); showToast("Goal updated ✓");
-  if(settings.sheetsUrl){setSyncStatus("syncing");const ok=await Promise.race([postToSheets("update_goal",{oldName:oldGoal.name,data:{name:icon+" "+cleanName,target,saved,monthly,due,color:colorVal[0]}}),new Promise(r=>setTimeout(()=>r(false),6000))]);if(ok){setSyncStatus("ok");showToast("Goal updated + synced ✓");}else{setSyncStatus("error");showToast("Updated locally — Sheets sync failed");}}
+  if(settings.sheetsUrl){setSyncStatus("syncing");const ok=await Promise.race([postToSheets("update_goal",{oldName:oldGoal.name,data:{name:icon+" "+cleanName,target,saved,monthly,due,color:colorVal[0]}}),new Promise(r=>setTimeout(()=>r(false),SYNC_TIMEOUT_META))]);if(ok){setSyncStatus("ok");showToast("Goal updated + synced ✓");}else{setSyncStatus("error");showToast("Updated locally — Sheets sync failed");}}
 }
 
 let editInstIdx = -1;
@@ -916,7 +928,7 @@ function openEditInstModal(idx) {
   const now=new Date(); let sd=p.startDate?parseDate(p.startDate):now; if(isNaN(sd))sd=now;
   buildDaySelect("ei-start-d",sd.getDate()); buildMonthSelect("ei-start-m",sd.getMonth()+1); buildYearSelect("ei-start-y",sd.getFullYear(),2,1);
   sddEnhance("ei-start-d",{flex:"1"}); sddEnhance("ei-start-m",{flex:"1.4"}); sddEnhance("ei-start-y",{flex:"1.2"});
-  const colorSel=document.getElementById("ei-color"); for(let i=0;i<colorSel.options.length;i++)if(colorSel.options[i].value===p.color){colorSel.selectedIndex=i;break;}
+  catSetValue("ei-color", p.color);
   sddEnhance("ei-color",{swatch:true,up:true});
   nkpBind();
   document.getElementById("modal-edit-inst").classList.remove("hidden"); setTimeout(()=>document.getElementById("ei-name").focus(),150);
@@ -929,7 +941,7 @@ async function confirmEditInst() {
   const oldInst={...INSTALLMENTS[editInstIdx]},icon=name.match(/^\p{Emoji}/u)?.[0]||oldInst.icon||"📦",cleanName=name.replace(/^\p{Emoji}\s*/u,"");
   INSTALLMENTS[editInstIdx]={...oldInst,icon,name:cleanName,cat,total,monthly,total_mo:totalMo,paid:Math.min(paid,totalMo),color,startDate};
   saveInsts(); closeModal("edit-inst"); renderInstallments(); showToast("Instalment updated ✓");
-  if(settings.sheetsUrl){setSyncStatus("syncing");const ok=await Promise.race([postToSheets("update_installment",{oldName:oldInst.name,data:{name:icon+" "+cleanName,category:cat,total,monthly,startDate,totalMonths:totalMo,monthsPaid:Math.min(paid,totalMo),color}}),new Promise(r=>setTimeout(()=>r(false),6000))]);if(ok){setSyncStatus("ok");showToast("Instalment updated + synced ✓");}else{setSyncStatus("error");showToast("Updated locally — Sheets sync failed");}}
+  if(settings.sheetsUrl){setSyncStatus("syncing");const ok=await Promise.race([postToSheets("update_installment",{oldName:oldInst.name,data:{name:icon+" "+cleanName,category:cat,total,monthly,startDate,totalMonths:totalMo,monthsPaid:Math.min(paid,totalMo),color}}),new Promise(r=>setTimeout(()=>r(false),SYNC_TIMEOUT_META))]);if(ok){setSyncStatus("ok");showToast("Instalment updated + synced ✓");}else{setSyncStatus("error");showToast("Updated locally — Sheets sync failed");}}
 }
 
 let editTxId = null, editTxType = "Expense";
@@ -966,7 +978,7 @@ async function confirmEditTx() {
   try { renderHistory(); } catch(e) { console.warn("renderHistory:", e); }
   try { renderHome(); } catch(e) { console.warn("renderHome:", e); }
   showToast("Transaction updated ✓");
-  if(settings.sheetsUrl){setSyncStatus("syncing");const res=await Promise.race([postToSheetsRaw("update_transaction",{rowId:oldTx.rowId,data:{oldDesc:oldTx.desc||oldTx.description||"",oldAmount:oldTx.amount,date,type:editTxType,category:cat,description:desc,amount,notes,fromGoal:oldTx.fromGoal,toGoal:oldTx.toGoal,goalId:oldTx.goalId,goalName:oldTx.goalName,splitId:oldTx.splitId}}),new Promise(r=>setTimeout(()=>r(null),15000))]);if(res&&!res.error){setSyncStatus("ok");delete pendingEdits[oldTx.rowId];savePendingEdits();showToast("Updated + synced to Sheets ✓");}else{setSyncStatus("error");if(oldTx.rowId){pendingEdits[oldTx.rowId]={type:editTxType,category:cat,desc,amount,notes,date};savePendingEdits();}showToast("Sync failed: "+(res&&res.error?res.error:"timeout")+" — edit saved locally");}}
+  if(settings.sheetsUrl){setSyncStatus("syncing");const res=await Promise.race([postToSheetsRaw("update_transaction",{rowId:oldTx.rowId,data:{oldDesc:oldTx.desc||oldTx.description||"",oldAmount:oldTx.amount,date,type:editTxType,category:cat,description:desc,amount,notes,fromGoal:oldTx.fromGoal,toGoal:oldTx.toGoal,goalId:oldTx.goalId,goalName:oldTx.goalName,splitId:oldTx.splitId}}),new Promise(r=>setTimeout(()=>r(null),SYNC_TIMEOUT_TX))]);if(res&&!res.error){setSyncStatus("ok");delete pendingEdits[oldTx.rowId];savePendingEdits();showToast("Updated + synced to Sheets ✓");}else{setSyncStatus("error");if(oldTx.rowId){pendingEdits[oldTx.rowId]={type:editTxType,category:cat,desc,amount,notes,date};savePendingEdits();}showToast("Sync failed: "+(res&&res.error?res.error:"timeout")+" — edit saved locally");}}
 }
 
 async function deleteTx(id) {
@@ -982,7 +994,7 @@ async function _doDeleteTx(id) {
   localStorage.setItem("ft_unsynced",JSON.stringify(unsyncedIds)); saveTxs();
   try { renderHistory(); } catch(e) { console.warn("renderHistory:", e); }
   try { renderHome(); } catch(e) { console.warn("renderHome:", e); }
-  if(tx&&settings.sheetsUrl){setSyncStatus("syncing");const ok=await Promise.race([postToSheets("delete_transaction",{rowId:tx.rowId,data:{date:tx.date,desc:tx.desc||tx.description||"",amount:tx.amount}}),new Promise(r=>setTimeout(()=>r(false),15000))]);if(ok){setSyncStatus("ok");deletedRowIds.delete(tx.rowId);saveDeletedRows();showToast("Transaction deleted + synced ✓");}else{setSyncStatus("error");showToast("Deleted locally — Sheets sync pending");}}
+  if(tx&&settings.sheetsUrl){setSyncStatus("syncing");const ok=await Promise.race([postToSheets("delete_transaction",{rowId:tx.rowId,data:{date:tx.date,desc:tx.desc||tx.description||"",amount:tx.amount}}),new Promise(r=>setTimeout(()=>r(false),SYNC_TIMEOUT_TX))]);if(ok){setSyncStatus("ok");deletedRowIds.delete(tx.rowId);saveDeletedRows();showToast("Transaction deleted + synced ✓");}else{setSyncStatus("error");showToast("Deleted locally — Sheets sync pending");}}
   else showToast("Transaction deleted");
 }
 

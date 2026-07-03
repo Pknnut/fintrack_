@@ -229,8 +229,8 @@ async function confirmEarlyPayoff(idx) {
   if (settings.sheetsUrl) {
     setSyncStatus("syncing");
     const [instOk, txOk] = await Promise.all([
-      Promise.race([postToSheets("update_installment_paid",{planName:p.name,monthsPaid:p.total_mo}), new Promise(r=>setTimeout(()=>r(false),6000))]),
-      Promise.race([postToSheets("add_transaction",{data:{...tx}}), new Promise(r=>setTimeout(()=>r(false),6000))])
+      Promise.race([postToSheets("update_installment_paid",{planName:p.name,monthsPaid:p.total_mo}), new Promise(r=>setTimeout(()=>r(false),SYNC_TIMEOUT_META))]),
+      Promise.race([postToSheets("add_transaction",{data:{...tx}}), new Promise(r=>setTimeout(()=>r(false),SYNC_TIMEOUT_TX))])
     ]);
     if (instOk && txOk) { setSyncStatus("ok"); }
     else {
@@ -262,7 +262,7 @@ async function deleteInst(idx) {
       txs = txs.filter(x => x.id !== t.id);
       unsyncedIds = unsyncedIds.filter(uid => uid !== t.id);
       if (t.rowId && settings.sheetsUrl) {
-        await Promise.race([postToSheets("delete_transaction", {rowId:t.rowId, data:{date:t.date,desc:t.desc||"",amount:t.amount}}), new Promise(r=>setTimeout(()=>r(false),4000))]);
+        await Promise.race([postToSheets("delete_transaction", {rowId:t.rowId, data:{date:t.date,desc:t.desc||"",amount:t.amount}}), new Promise(r=>setTimeout(()=>r(false),SYNC_TIMEOUT_TX))]);
       }
     }
     localStorage.setItem("ft_unsynced", JSON.stringify(unsyncedIds));
@@ -270,7 +270,7 @@ async function deleteInst(idx) {
   }
   INSTALLMENTS.splice(idx,1); saveInsts(); renderInstallments(); renderHome();
   const linkedNote = deleteLinked ? " + " + linkedTxs.length + " transaction(s) removed" : "";
-  if(inst&&settings.sheetsUrl){setSyncStatus("syncing");const ok=await Promise.race([postToSheets("delete_installment",{name:inst.name}),new Promise(r=>setTimeout(()=>r(false),6000))]);if(ok){setSyncStatus("ok");showToast("Instalment deleted"+linkedNote+" + synced ✓");}else{setSyncStatus("error");showToast("Deleted locally — Sheets sync failed");}}
+  if(inst&&settings.sheetsUrl){setSyncStatus("syncing");const ok=await Promise.race([postToSheets("delete_installment",{name:inst.name}),new Promise(r=>setTimeout(()=>r(false),SYNC_TIMEOUT_META))]);if(ok){setSyncStatus("ok");showToast("Instalment deleted"+linkedNote+" + synced ✓");}else{setSyncStatus("error");showToast("Deleted locally — Sheets sync failed");}}
   else showToast("Instalment deleted"+linkedNote);
 }
 
@@ -513,11 +513,11 @@ async function submitSplitTx() {
     if (editing) {
       for (const m of oldMembers) { if (m.rowId) { deletedRowIds.add(m.rowId); saveDeletedRows(); } }
       for (const m of oldMembers) {
-        const ok = await Promise.race([postToSheets("delete_transaction",{rowId:m.rowId,data:{desc:m.desc||"",amount:m.amount}}), new Promise(r=>setTimeout(()=>r(false),12000))]);
+        const ok = await Promise.race([postToSheets("delete_transaction",{rowId:m.rowId,data:{desc:m.desc||"",amount:m.amount}}), new Promise(r=>setTimeout(()=>r(false),SYNC_TIMEOUT_TX))]);
         if (ok && m.rowId) { deletedRowIds.delete(m.rowId); saveDeletedRows(); }
       }
     }
-    const ok = await Promise.race([postToSheets("add_transactions_bulk",{data:newTxs}), new Promise(r=>setTimeout(()=>r(false),12000))]);
+    const ok = await Promise.race([postToSheets("add_transactions_bulk",{data:newTxs}), new Promise(r=>setTimeout(()=>r(false),SYNC_TIMEOUT_BULK))]);
     if (ok) { showToast(editing?"Split updated + synced ✓":"Split added + synced ✓"); setSyncStatus("ok"); }
     else { newTxs.forEach(t=>unsyncedIds.push(t.id)); showToast("Saved locally — will sync later"); setSyncStatus("error"); }
   } else showToast(editing ? "Split updated ✓" : ("Split saved ✓ ("+items.length+" categories)"));
@@ -538,7 +538,7 @@ async function deleteSplitGroup(splitId) {
   if (settings.sheetsUrl) {
     setSyncStatus("syncing");
     let allOk = true;
-    for (const m of members) { const ok = await Promise.race([postToSheets("delete_transaction",{rowId:m.rowId,data:{date:m.date,desc:m.desc||"",amount:m.amount}}), new Promise(r=>setTimeout(()=>r(false),5000))]); if(!ok) allOk=false; }
+    for (const m of members) { const ok = await Promise.race([postToSheets("delete_transaction",{rowId:m.rowId,data:{date:m.date,desc:m.desc||"",amount:m.amount}}), new Promise(r=>setTimeout(()=>r(false),SYNC_TIMEOUT_TX))]); if(!ok) allOk=false; }
     setSyncStatus(allOk?"ok":"error");
   }
   showToast("Split deleted");
@@ -558,7 +558,7 @@ async function submitTx() {
     saveRecurring();
     showToast("Added as recurring ✓");
   }
-  if(settings.sheetsUrl&&settings.autosync){setSyncStatus("syncing");const res=await Promise.race([postToSheetsRaw("add_transaction",{data:{...tx}}),new Promise(r=>setTimeout(()=>r(null),6000))]);if(res&&!res.error){if(res.rowId){const local=txs.find(t=>t.id===tx.id);if(local){local.rowId=res.rowId;saveTxs();}}showToast("Added + synced ✓");setSyncStatus("ok");}else{unsyncedIds.push(tx.id);localStorage.setItem("ft_unsynced",JSON.stringify(unsyncedIds));showToast("Saved locally — will sync later");setSyncStatus("error");}}
+  if(settings.sheetsUrl&&settings.autosync){setSyncStatus("syncing");const res=await Promise.race([postToSheetsRaw("add_transaction",{data:{...tx}}),new Promise(r=>setTimeout(()=>r(null),SYNC_TIMEOUT_TX))]);if(res&&!res.error){if(res.rowId){const local=txs.find(t=>t.id===tx.id);if(local){local.rowId=res.rowId;saveTxs();}}showToast("Added + synced ✓");setSyncStatus("ok");}else{unsyncedIds.push(tx.id);localStorage.setItem("ft_unsynced",JSON.stringify(unsyncedIds));showToast("Saved locally — will sync later");setSyncStatus("error");}}
   else showToast("Transaction added ✓");
   flashBtn("btn-add-tx","Add Transaction","var(--slate-900)"); await delay(900); goTo("home");
 }
@@ -571,7 +571,7 @@ async function submitGoal() {
   const category=document.getElementById("g-category").value||"💰 Other";
   const newGoal={id:Date.now(),icon:name.match(/^\p{Emoji}/u)?.[0]||"🎯",name:name.replace(/^\p{Emoji}\s*/u,""),saved,target,monthly,color:colorVal[0],bg:colorVal[1]||"var(--slate-100)",due,category,spends:[]};
   GOALS.push(newGoal); saveGoals();
-  if(settings.sheetsUrl&&settings.autosync){setSyncStatus("syncing");const ok=await Promise.race([postToSheets("add_goal",{data:{name,target,saved,monthly,due,color:colorVal[0]}}),new Promise(r=>setTimeout(()=>r(false),6000))]);if(ok){showToast("Goal added + synced ✓");setSyncStatus("ok");}else{showToast("Saved locally — sync timed out");setSyncStatus("error");}}
+  if(settings.sheetsUrl&&settings.autosync){setSyncStatus("syncing");const ok=await Promise.race([postToSheets("add_goal",{data:{name,target,saved,monthly,due,color:colorVal[0]}}),new Promise(r=>setTimeout(()=>r(false),SYNC_TIMEOUT_META))]);if(ok){showToast("Goal added + synced ✓");setSyncStatus("ok");}else{showToast("Saved locally — sync timed out");setSyncStatus("error");}}
   else showToast("Goal saved ✓");
   flashBtn("btn-add-goal","Add Goal","var(--green)"); await delay(900); goTo("goals");
 }
@@ -583,7 +583,7 @@ async function submitInst() {
   setBtn("btn-add-inst",true,"Add Instalment","var(--indigo)");
   const startDate=getDateVal("i-start-d","i-start-m","i-start-y");
   INSTALLMENTS.push({id:Date.now(),icon:name.match(/^\p{Emoji}/u)?.[0]||"📦",name:name.replace(/^\p{Emoji}\s*/u,""),cat,total,monthly,paid:Math.min(paid,totalMo),total_mo:totalMo,color,startDate}); saveInsts();
-  if(settings.sheetsUrl&&settings.autosync){setSyncStatus("syncing");const ok=await Promise.race([postToSheets("add_installment",{data:{name,category:cat,total,monthly,startDate,totalMonths:totalMo,monthsPaid:paid}}),new Promise(r=>setTimeout(()=>r(false),6000))]);if(ok){showToast("Instalment added + synced ✓");setSyncStatus("ok");}else{showToast("Saved locally — sync timed out");setSyncStatus("error");}}
+  if(settings.sheetsUrl&&settings.autosync){setSyncStatus("syncing");const ok=await Promise.race([postToSheets("add_installment",{data:{name,category:cat,total,monthly,startDate,totalMonths:totalMo,monthsPaid:paid}}),new Promise(r=>setTimeout(()=>r(false),SYNC_TIMEOUT_META))]);if(ok){showToast("Instalment added + synced ✓");setSyncStatus("ok");}else{showToast("Saved locally — sync timed out");setSyncStatus("error");}}
   else showToast("Instalment saved ✓");
   flashBtn("btn-add-inst","Add Instalment","var(--indigo)"); await delay(900); goTo("installments");
 }
