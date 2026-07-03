@@ -19,7 +19,7 @@ function updatePayoffSim() {
   const rem = Math.max(p.total_mo - p.paid, 0);
   const bal = Math.max(p.total - p.monthly * p.paid, 0);
   const extra = Number(document.getElementById("payoff-slider").value) || 0;
-  document.getElementById("payoff-extra-val").textContent = "฿" + extra.toLocaleString();
+  document.getElementById("payoff-extra-val").textContent = fmt(extra, 0);
   const pay = p.monthly + extra;
   const newMonths = pay > 0 ? Math.min(rem, Math.max(1, Math.ceil(bal / pay))) : rem;
   const sooner = rem - newMonths;
@@ -97,7 +97,7 @@ function updateSnowballPlan() {
   }));
   if (!active.length) return;
   const extra = Number(document.getElementById("snow-slider").value) || 0;
-  document.getElementById("snow-extra-val").textContent = "฿" + extra.toLocaleString();
+  document.getElementById("snow-extra-val").textContent = fmt(extra, 0);
   const { order } = simulateSnowball(active, _snowStrategy, extra);
   const now = new Date();
   const lbl = n => { const d = new Date(now.getFullYear(), now.getMonth() + n, 1); return MO[d.getMonth()] + " " + d.getFullYear(); };

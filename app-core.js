@@ -374,6 +374,13 @@ function togglePrivacy() {
     if (id==="page-installments") renderInstallments();
     if (id==="page-history")      renderHistory();
     if (id==="page-budget")       renderBudget();
+    // These four also render fmt() amounts but were missing here — toggling
+    // Privacy Mode on while viewing any of them left real numbers on screen
+    // until you navigated away and back, defeating the point of the toggle.
+    if (id==="page-calendar")     renderCalendarPage();
+    if (id==="page-recurring")    renderRecurringPage();
+    if (id==="page-estbills")     renderEstBillsPage();
+    if (id==="page-forecast")     renderForecastPage();
   }
 }
 function safeDate(raw) {
