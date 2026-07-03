@@ -72,7 +72,10 @@ function calcForecastMonths(n) {
   const recurringExpense = RECURRING.filter(r => (r.type||"Expense") === "Expense").reduce((s,r)=>s+(r.amount||0), 0);
   const estRepeatingExpense = estBillsRepeatingExpenseTotal();
   const estRepeatingIncome  = estBillsRepeatingIncomeTotal();
-  let balance = calcSummary(txs).net; // today's actual all-time running balance
+  // Starting balance must exclude fromGoal spends, same as Home's Current Balance —
+  // that cash already left spendable balance when it was originally contributed to
+  // the goal (toGoal), so subtracting it again here when it's spent double-counts it.
+  let balance = calcSummary(txs.filter(t => !(t.fromGoal===true && isGoalSpend(t)))).net; // today's actual all-time running balance
   const now = new Date();
   const months = [];
   for (let m = 1; m <= n; m++) {

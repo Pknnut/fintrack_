@@ -160,6 +160,11 @@ async function confirmSpendGoal() {
   closeModal("spend-goal");
   spendGoalIdx = -1;
   renderGoals();
+  // Home's Current Balance excludes goal-spends, but the card still needs a
+  // re-render to reflect that — confirmAddSavings already does this, this path
+  // was just missing it, which made Home look temporarily wrong until you
+  // navigated away and back.
+  renderHome();
   showToast("Spend recorded ✓");
 
   // Sync to Sheets
