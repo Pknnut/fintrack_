@@ -945,8 +945,13 @@ function openEditTxModal(id) {
   document.getElementById("edit-amount").value=tx.amount||"";
   catSetValue("edit-category", tx.category);
   document.getElementById("edit-desc").value=tx.desc||tx.description||""; document.getElementById("edit-notes").value=tx.notes||"";
-  const now=new Date(),cy=now.getFullYear(); buildDaySelect("edit-date-d",1); buildMonthSelect("edit-date-m",1); buildYearSelect("edit-date-y",cy,3,0);
-  if(tx.date){const parts=tx.date.split("-");if(parts.length===3){const y=parseInt(parts[0]),m=parseInt(parts[1]),d=parseInt(parts[2]),dSel=document.getElementById("edit-date-d"),mSel=document.getElementById("edit-date-m"),ySel=document.getElementById("edit-date-y");for(let i=0;i<dSel.options.length;i++)if(parseInt(dSel.options[i].value)===d){dSel.selectedIndex=i;break;}for(let i=0;i<mSel.options.length;i++)if(parseInt(mSel.options[i].value)===m){mSel.selectedIndex=i;break;}for(let i=0;i<ySel.options.length;i++)if(parseInt(ySel.options[i].value)===y){ySel.selectedIndex=i;break;}}}
+  // Same as openEditContribModal — parseDate() feeds the builders' own preselect
+  // param directly, instead of a separate split("-") + manual option-loop.
+  const now=new Date(),cy=now.getFullYear();
+  const ed = tx.date ? parseDate(tx.date) : now, edValid = !isNaN(ed);
+  buildDaySelect("edit-date-d", edValid ? ed.getDate() : 1);
+  buildMonthSelect("edit-date-m", edValid ? ed.getMonth()+1 : 1);
+  buildYearSelect("edit-date-y", edValid ? ed.getFullYear() : cy, 3, 0);
   sddEnhance("edit-date-d",{flex:"1"}); sddEnhance("edit-date-m",{flex:"1.4"}); sddEnhance("edit-date-y",{flex:"1.2"});
   nkpBind();
   document.getElementById("modal-edit-tx").classList.remove("hidden"); /* keypad field: no autofocus (avoids auto-opening keypad over the form) */

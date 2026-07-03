@@ -20,21 +20,14 @@ function openEditContribModal(goalIdx, contribIdx) {
   document.getElementById("edit-contrib-sub").textContent = "Editing contribution for " + g.name;
   document.getElementById("edit-contrib-amount").value = c.amount;
   document.getElementById("edit-contrib-note").value   = c.note || "";
-  // Build date dropdowns, preselecting the contribution's existing date
+  // Build date dropdowns, preselecting the contribution's existing date — routed
+  // through the same parseDate() everything else uses, instead of a separate
+  // split("-") + manual option-loop (see openEditTxModal for the same pattern).
   const today = new Date();
-  buildDaySelect("ec-date-d", today.getDate());
-  buildMonthSelect("ec-date-m", today.getMonth()+1);
-  buildYearSelect("ec-date-y", today.getFullYear(), 5, 1);
-  if (c.date) {
-    const p = c.date.split("-");
-    if (p.length === 3) {
-      const y=parseInt(p[0]), m=parseInt(p[1]), d=parseInt(p[2]);
-      const dS=document.getElementById("ec-date-d"), mS=document.getElementById("ec-date-m"), yS=document.getElementById("ec-date-y");
-      for(let i=0;i<dS.options.length;i++) if(parseInt(dS.options[i].value)===d){dS.selectedIndex=i;break;}
-      for(let i=0;i<mS.options.length;i++) if(parseInt(mS.options[i].value)===m){mS.selectedIndex=i;break;}
-      for(let i=0;i<yS.options.length;i++) if(parseInt(yS.options[i].value)===y){yS.selectedIndex=i;break;}
-    }
-  }
+  const cd = c.date ? parseDate(c.date) : today, cdValid = !isNaN(cd);
+  buildDaySelect("ec-date-d", cdValid ? cd.getDate() : today.getDate());
+  buildMonthSelect("ec-date-m", cdValid ? cd.getMonth()+1 : today.getMonth()+1);
+  buildYearSelect("ec-date-y", cdValid ? cd.getFullYear() : today.getFullYear(), 5, 1);
   sddEnhance("ec-date-d",{flex:"1",up:true}); sddEnhance("ec-date-m",{flex:"1.4",up:true}); sddEnhance("ec-date-y",{flex:"1.2",up:true});
   document.getElementById("modal-edit-contrib").classList.remove("hidden");
   nkpBind();
