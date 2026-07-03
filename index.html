@@ -856,6 +856,7 @@
         <span class="nkp-label" id="nkp-label">Enter amount</span>
         <span class="nkp-value" id="nkp-value">฿0</span>
       </div>
+      <button class="kb-icon-btn" id="nkp-paste" onclick="nkpPaste()" aria-label="Paste"><i class="ti ti-clipboard"></i></button>
       <button class="nkp-done" id="nkp-done" onclick="nkpDone()">Done</button>
     </div>
     <div class="nkp-grid" id="nkp-grid"></div>
@@ -865,6 +866,13 @@
 <!-- TEXT KEYBOARD (EN / TH) -->
 <div class="tkb-overlay" id="tkb-overlay" aria-modal="true" role="dialog" aria-label="Text keyboard">
   <div class="tkb-sheet" id="tkb-sheet">
+    <div class="tkb-bar">
+      <span class="tkb-label" id="tkb-label">Text</span>
+      <div class="tkb-bar-actions">
+        <button class="kb-icon-btn" id="tkb-copy" onclick="tkbCopy()" aria-label="Copy"><i class="ti ti-copy"></i></button>
+        <button class="kb-icon-btn" id="tkb-paste" onclick="tkbPaste()" aria-label="Paste"><i class="ti ti-clipboard"></i></button>
+      </div>
+    </div>
     <div class="tkb-rows" id="tkb-rows"></div>
   </div>
 </div>

@@ -173,6 +173,26 @@ function nkpPress(k) {
   if (vd) vd.innerHTML = nkpFmtDisplay(_nkpVal) + '<span class="kb-hdr-caret"></span>';
 }
 
+async function nkpPaste() {
+  if (!_nkpTarget) return;
+  let text;
+  try { text = await navigator.clipboard.readText(); }
+  catch (e) { showToast("Can't access clipboard — check browser permissions"); return; }
+  // Strip everything but digits and a decimal point (drops ฿, commas, currency codes, etc.)
+  let cleaned = (text || "").replace(/[^\d.]/g, "");
+  if (_nkpInt) cleaned = cleaned.split(".")[0];               // count fields: no decimal
+  else {
+    const firstDot = cleaned.indexOf(".");
+    if (firstDot !== -1) cleaned = cleaned.slice(0, firstDot + 1) + cleaned.slice(firstDot + 1).replace(/\./g, "");
+  }
+  if (!cleaned) { showToast("Clipboard has no number to paste"); return; }
+  _nkpVal = cleaned;
+  _nkpTarget.value = _nkpVal;
+  _nkpTarget.dispatchEvent(new Event("input", {bubbles:true}));
+  const vd = document.getElementById("nkp-value");
+  if (vd) vd.innerHTML = nkpFmtDisplay(_nkpVal) + '<span class="kb-hdr-caret"></span>';
+}
+
 function nkpOpen(input) {
   nkpBuild();
   _nkpTarget = input;
@@ -405,6 +425,12 @@ function tkbOpen(input) {
   _tkbTarget = input;
   _tkbMode = "letters"; _tkbShift = false; // keep last-used language across opens
   tkbRender();
+  const lbl = document.getElementById("tkb-label");
+  if (lbl) {
+    let txt = input.closest(".form-field")?.querySelector("label")?.textContent
+           || input.getAttribute("placeholder");
+    lbl.textContent = (txt || "Text").trim();
+  }
   const ov = document.getElementById("tkb-overlay");
   if (ov) ov.classList.add("open");
   tkbRestoreReveal();
@@ -427,6 +453,25 @@ function tkbClose() {
     _tkbTarget.blur();
     _tkbTarget = null;
   }
+}
+
+async function tkbCopy() {
+  if (!_tkbTarget) return;
+  const text = _tkbTarget.value || "";
+  if (!text) { showToast("Nothing to copy"); return; }
+  try { await navigator.clipboard.writeText(text); showToast("Copied"); }
+  catch (e) { showToast("Can't access clipboard — check browser permissions"); }
+}
+
+async function tkbPaste() {
+  if (!_tkbTarget) return;
+  let text;
+  try { text = await navigator.clipboard.readText(); }
+  catch (e) { showToast("Can't access clipboard — check browser permissions"); return; }
+  if (!text) { showToast("Clipboard is empty"); return; }
+  _tkbTarget.value = (_tkbTarget.value || "") + text;
+  _tkbTarget.dispatchEvent(new Event("input", {bubbles:true}));
+  kbCaretUpdate(_tkbTarget);
 }
 
 function kbSetRing(input) {

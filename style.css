@@ -671,6 +671,12 @@
   .nkp-value { font-size: 25px; font-weight: 700; color: var(--slate-900); letter-spacing: -0.5px; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .nkp-done { font-size: 13px; font-weight: 700; color: var(--white); background: var(--teal); border: none; border-radius: 20px; padding: 7px 22px; cursor: pointer; font-family: inherit; }
   .nkp-done:active { background: var(--teal-dark); }
+  .kb-icon-btn { flex-shrink: 0; width: 36px; height: 36px; border: 1px solid var(--slate-200); border-radius: 10px; background: var(--slate-50); color: var(--slate-500); font-size: 17px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .kb-icon-btn:active { background: var(--teal); color: #fff; border-color: var(--teal); }
+  body.dark .kb-icon-btn { background: var(--slate-100); border-color: var(--slate-200); }
+  .tkb-bar { display: flex; align-items: center; justify-content: space-between; padding: 2px 6px 8px; gap: 12px; }
+  .tkb-label { font-size: 11px; color: var(--slate-400); font-weight: 600; letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tkb-bar-actions { display: flex; gap: 8px; flex-shrink: 0; }
   .nkp-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
   .nkp-key { height: 54px; border: 1px solid var(--slate-200); border-radius: 12px; background: var(--slate-50); color: var(--slate-900); font-size: 22px; font-weight: 600; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; user-select: none; -webkit-user-select: none; transition: background 0.06s, transform 0.06s; }
   .nkp-key i { color: var(--slate-500); font-size: 22px; }
