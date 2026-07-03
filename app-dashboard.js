@@ -407,6 +407,13 @@ function renderGoals() {
       : '';
     // Build contribution log
     const contribs = g.contributions || [];
+    // Two different totals, deliberately not merged into one:
+    // - "Total saved" (gross) sits right under the contributions list — a plain
+    //   summary of what's been put in, same way "Total spent" summarizes the
+    //   spending log right above it.
+    // - "Total saved (net)" sits at the very bottom — gross minus everything spent,
+    //   i.e. g.saved, the real number behind the goal's progress bar.
+    const totalSaved = contribs.reduce((s,c) => s + (c.amount||0), 0);
     const contribLogHtml = '<div class="contrib-log" id="contrib-log-'+idx+'" style="max-height:0">' +
       '<div style="height:1px;background:var(--slate-100);margin:10px 0"></div>' +
       '<div class="contrib-log-hd"><span>Savings contributions</span><span>'+contribs.length+' entries</span></div>' +
@@ -414,11 +421,9 @@ function renderGoals() {
         const realIdx = contribs.length - 1 - ci;
         return '<div class="contrib-log-row"><div><div class="contrib-log-note">'+(c.note||'—')+'</div><div class="contrib-log-date">'+c.date+'</div></div><div style="display:flex;align-items:center;gap:4px"><span class="contrib-log-amt">+'+fmt(c.amount)+'</span><button class="contrib-log-del" onclick="openEditContribModal('+idx+','+realIdx+')" aria-label="Edit contribution" style="color:var(--blue)">'+EDIT_PENCIL_SM+'</button><button class="contrib-log-del" onclick="deleteGoalContrib('+idx+','+realIdx+')" aria-label="Delete contribution"><i class="ti ti-x" style="font-size:11px"></i></button></div></div>';
       }).join('') : '<div style="font-size:11px;color:var(--slate-400);padding:8px 0;text-align:center">No contributions yet</div>') +
-      // "Total saved" is g.saved itself — now always contributions minus spends
-      // (see recalcGoalSaved), so this correctly nets out spending automatically
-      // instead of showing the gross ever-contributed amount.
-      (contribs.length ? '<div class="contrib-log-total"><span style="color:var(--slate-500)">Total saved (net)</span><span style="color:var(--green-strong)">'+fmt(g.saved)+'</span></div>' : '') +
+      (contribs.length ? '<div class="contrib-log-total"><span style="color:var(--slate-500)">Total saved</span><span style="color:var(--green-strong)">'+fmt(totalSaved)+'</span></div>' : '') +
       (spendLogHtml ? '<div style="height:1px;background:var(--slate-100);margin:10px 0"></div>'+spendLogHtml : '') +
+      (contribs.length ? '<div class="contrib-log-total"><span style="color:var(--slate-500)">Total saved (net)</span><span style="color:var(--green-strong)">'+fmt(g.saved)+'</span></div>' : '') +
     '</div>';
     return '<div class="goal-card"><div class="goal-top"><div style="display:flex;align-items:center;gap:8px"><div class="goal-icon-wrap" style="background:'+(g.bg||'var(--slate-100)')+'">'+(g.icon||'🎯')+'</div><div><div class="goal-name">'+g.name+'</div><div class="goal-saved">'+fmt(g.saved)+' saved of '+fmt(g.target)+(g.category?' · <span style="color:var(--slate-500)">'+g.category+'</span>':'')+( isDone?' · <span style="color:var(--green-strong);font-weight:600">Goal reached!</span>':'' )+'</div></div></div><div class="goal-pct" style="color:'+g.color+'">'+pct+'%</div></div><div class="goal-track"><div class="goal-fill" style="width:'+pct+'%;background:'+g.color+'"></div></div><div class="goal-footer"><span>'+(isDone?'🎉 Goal reached!':fmt(g.target-g.saved)+' remaining')+'</span><span style="color:'+(projLabel?'var(--teal)':'var(--slate-400)')+'">'+( isDone?'':projLabel||('Target: '+g.due) )+'</span></div><div class="goal-actions"><button class="goal-action-btn goal-save-btn" onclick="openGoalModal('+idx+')"'+(isDone?' disabled style="opacity:0.4"':'')+'>+ Add savings</button><button class="goal-action-btn goal-spend-btn" onclick="openSpendGoalModal('+idx+')"'+(isDone?'':' style="opacity:0.7"')+'>💸 Spend</button><button class="goal-action-btn goal-hist-btn" id="goal-hist-btn-'+idx+'" onclick="toggleContribLog('+idx+')">History</button><button class="goal-action-btn goal-edit-btn" onclick="openEditGoalModal('+idx+')" aria-label="Edit">'+EDIT_PENCIL+'</button><button class="goal-action-btn goal-delete-btn" onclick="deleteGoal('+idx+')">🗑️</button></div>'+contribLogHtml+'</div>';
   }).join("");
