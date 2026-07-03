@@ -41,7 +41,7 @@ function openEditContribModal(goalIdx, contribIdx) {
   /* keypad field: no autofocus (avoids auto-opening keypad over the form) */
 }
 
-function confirmEditContrib() {
+async function confirmEditContrib() {
   if (editContribGoalIdx < 0 || editContribIdx < 0) return;
   const g       = GOALS[editContribGoalIdx];
   const contribs = g.contributions || [];
@@ -56,6 +56,23 @@ function confirmEditContrib() {
   g.contributions = contribs;
   recalcGoalSaved(g);
   saveGoals();
+  // Keep the linked transaction in sync with the edit — without this, History
+  // and Sheets would keep showing the OLD amount/date forever after an edit,
+  // even though the goal's saved total already reflects the new one.
+  if (old.txId) {
+    const idx = txs.findIndex(t => t.id === old.txId);
+    if (idx >= 0) {
+      const oldTx = { ...txs[idx] };
+      txs[idx] = { ...oldTx, amount: newAmount, date: newDate, notes: newNote };
+      saveTxs();
+      try { renderHistory(); } catch(e) { console.warn("renderHistory:", e); }
+      if (settings.sheetsUrl) {
+        setSyncStatus("syncing");
+        const res = await Promise.race([postToSheetsRaw("update_transaction",{rowId:oldTx.rowId,data:{oldDesc:oldTx.desc||oldTx.description||"",oldAmount:oldTx.amount,date:newDate,type:oldTx.type,category:oldTx.category,description:oldTx.desc,amount:newAmount,notes:newNote,fromGoal:oldTx.fromGoal,toGoal:oldTx.toGoal,goalId:oldTx.goalId,goalName:oldTx.goalName}}),new Promise(r=>setTimeout(()=>r(null),15000))]);
+        setSyncStatus(res && !res.error ? "ok" : "error");
+      }
+    }
+  }
   closeModal("edit-contrib");
   editContribGoalIdx = -1; editContribIdx = -1;
   renderGoals();
@@ -70,6 +87,13 @@ async function deleteGoalContrib(goalIdx, contribIdx) {
   g.contributions.splice(contribIdx, 1);
   recalcGoalSaved(g);
   saveGoals(); renderGoals();
+  // Remove the linked transaction too (both locally and from Sheets) — reusing
+  // the same delete+sync logic as a normal History delete, rather than just
+  // splicing txs directly, so it correctly handles the rowId/deletedRowIds
+  // bookkeeping and doesn't leave the row behind in the sheet.
+  if (removed.txId && txs.some(t => t.id === removed.txId)) {
+    await _doDeleteTx(removed.txId);
+  }
   showToast("Contribution removed — " + fmt(removed.amount) + " deducted from saved total");
 }
 
@@ -151,11 +175,13 @@ async function deleteGoalSpend(goalIdx, spendIdx) {
   g.spends.splice(spendIdx, 1);
   recalcGoalSaved(g);
   saveGoals();
-  // Remove the linked tx by its own id (precise — no amount/date collision risk).
-  if (spend) {
-    const before = txs.length;
-    txs = txs.filter(t => t.id !== spend.id);
-    if (txs.length !== before) saveTxs();
+  // Remove the linked transaction (locally AND from Sheets) — this used to only
+  // filter it out of the local txs array, which is why it vanished from History
+  // but stayed in the sheet forever. _doDeleteTx handles the full delete+sync
+  // (including rowId/deletedRowIds bookkeeping) the same way a normal History
+  // delete does.
+  if (spend && txs.some(t => t.id === spend.id)) {
+    await _doDeleteTx(spend.id);
   }
   renderGoals();
   showToast("Spend removed ✓");

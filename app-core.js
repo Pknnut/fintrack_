@@ -432,12 +432,6 @@ async function confirmAddSavings() {
   const note = document.getElementById("modal-goal-note").value.trim();
   const date = getDateVal("mg-date-d","mg-date-m","mg-date-y") || toDateStr(new Date());
   const g = GOALS[modalGoalIdx];
-  // Save to contributions log
-  if (!g.contributions) g.contributions = [];
-  g.contributions.push({ id: Date.now(), amount, note, date });
-  recalcGoalSaved(g);
-  const newSaved = g.saved;
-  saveGoals();
   // Also create a real transaction so this actually reduces Current Balance —
   // money moving into a goal has genuinely left spendable cash. Typed Expense
   // (so calcSummary/Current Balance correctly subtracts it) but flagged toGoal
@@ -446,6 +440,15 @@ async function confirmAddSavings() {
   // instead of a red "-" so it doesn't read as a normal expense either.
   const tx = { id: Date.now()+1, date, type: "Expense", category: "🎯 Goal Savings",
                desc: g.name, amount, notes: note, toGoal: true, goalId: g.id, goalName: g.name };
+  // Save to contributions log — txId links this entry to the transaction above,
+  // so deleteGoalContrib/confirmEditContrib know which transaction to remove or
+  // update. Without this link, deleting a contribution only removed the log
+  // entry, leaving its transaction permanently orphaned in History and Sheets.
+  if (!g.contributions) g.contributions = [];
+  g.contributions.push({ id: Date.now(), amount, note, date, txId: tx.id });
+  recalcGoalSaved(g);
+  const newSaved = g.saved;
+  saveGoals();
   txs.push(tx); saveTxs();
   closeModal("goal"); renderGoals(); renderHome();
   showToast("+" + fmt(amount) + " saved!");
@@ -565,7 +568,7 @@ async function fetchFromSheets(silent = false) {
         const key = (t.date||"") + '|' + t.amount + '|' + (t.desc||t.description||"");
         return !sheetsKeys.has(key); // has a stale rowId — keep only if its content isn't in Sheets yet either
       });
-      const sheetsRows = data.transactions.filter(t => !deletedRowIds.has(t.rowId)).map(t => ({id:t.rowId,rowId:t.rowId,date:normalizeDate(t.date),type:t.type,category:t.category,desc:t.description,amount:t.amount,notes:t.notes||"",fromGoal:t.fromGoal===true||t.fromGoal==="true"||t.fromGoal===1,goalName:t.goalName||"",splitId:t.splitId||""}));
+      const sheetsRows = data.transactions.filter(t => !deletedRowIds.has(t.rowId)).map(t => ({id:t.rowId,rowId:t.rowId,date:normalizeDate(t.date),type:t.type,category:t.category,desc:t.description,amount:t.amount,notes:t.notes||"",fromGoal:t.fromGoal===true||t.fromGoal==="true"||t.fromGoal===1,toGoal:t.toGoal===true||t.toGoal==="true"||t.toGoal===1,goalId:t.goalId!=null?t.goalId:null,goalName:t.goalName||"",splitId:t.splitId||""}));
       // deletedRowIds is only meant to hide a just-deleted row for the few seconds before
       // Sheets' read catches up with the delete — it must NOT persist past that. Row numbers
       // get reused once everything below a deleted row shifts up, so a stale entry here
