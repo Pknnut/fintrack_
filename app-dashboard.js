@@ -733,6 +733,15 @@ function renderAnalytics() {
         goalSpendArr.map(t=>rowHtml(t,false)).join("") +
         '<div class="goal-spend-row" style="font-weight:600"><span style="font-size:11px">Total spent</span><span style="font-size:11px;color:var(--amber-strong)">'+fmt(totalSpend)+'</span></div>';
     }
+    // Net across ALL goal activity this month — not "this goal's" net, since a
+    // contribution and a spend in the same month could belong to two entirely
+    // different goals. Only shown once both directions are present; with only
+    // one direction it'd just repeat that section's own total.
+    if (goalContribArr.length && goalSpendArr.length) {
+      const netGoalActivity = totalContrib - totalSpend;
+      sectionsHtml += '<div style="height:1px;background:var(--slate-200);margin:8px 0"></div>' +
+        '<div class="goal-spend-row" style="font-weight:700"><span style="font-size:11px">Net across all goals</span><span style="font-size:11px;color:'+(netGoalActivity>=0?'var(--teal)':'var(--red-strong)')+'">'+(netGoalActivity>=0?'+':'')+fmt(netGoalActivity)+'</span></div>';
+    }
     gsRows.innerHTML = sectionsHtml;
   } else if (gsSec) { gsSec.style.display = "none"; }
   document.getElementById("an-filter-label").textContent=MO[mo]+" "+yr; document.getElementById("an-year-label").textContent="Yearly overview";
