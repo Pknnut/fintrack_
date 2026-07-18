@@ -782,21 +782,16 @@
     /* Goals: card list becomes a 2-column grid */
     .goals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-    /* Analytics: stat row goes 4-across, donut/mom charts sit side-by-side */
+    /* Analytics: stat row goes 4-across; donut card and the year/rate/mom stack
+       sit in independent flex columns (not CSS grid) so their very different
+       heights don't force each other into mismatched rows */
     .an-stats-grid { grid-template-columns: repeat(4, 1fr) !important; }
-    #page-analytics.active {
-      display: grid; grid-template-columns: 1fr 1fr; align-content: start;
-      gap: 0 20px;
-    }
-    #page-analytics .an-header-block,
-    #page-analytics .period-picker,
-    #page-analytics .an-stats-grid,
-    #page-analytics .spacer { grid-column: 1 / -1; }
-    #page-analytics .an-donut-card,
-    #page-analytics .an-donut-detail { grid-column: 1; }
-    #page-analytics .an-year-wrap,
-    #page-analytics .rate-chart-wrap,
-    #page-analytics #mom-container { grid-column: 2; }
+    .an-charts-row { display: flex; align-items: flex-start; gap: 20px; margin: 0 20px; }
+    .an-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+    .an-col .an-donut-card,
+    .an-col .an-year-wrap,
+    .an-col .rate-chart-wrap,
+    .an-col #mom-container { margin-left: 0; margin-right: 0; }
 
     /* History: list stays single column (already benefits from wider .page) but
        search/filter row gets breathing room instead of stretching edge-to-edge */

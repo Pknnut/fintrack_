@@ -392,45 +392,52 @@
     <div class="card" style="padding:12px 14px"><div style="font-size:9px;color:var(--slate-400);margin-bottom:4px">Net savings</div><div style="font-size:16px;font-weight:700;color:var(--slate-900)" id="an-net">฿0</div></div>
     <div class="card" style="padding:12px 14px"><div style="font-size:9px;color:var(--slate-400);margin-bottom:4px">Savings rate</div><div style="font-size:16px;font-weight:700;color:var(--slate-900)" id="an-rate">0%</div></div>
   </div>
-  <div class="an-donut-card">
-    <div class="an-donut-card-header">Spending by category</div>
-    <div class="an-donut-wrap" style="padding:8px 14px 10px">
-      <svg id="an-donut-svg" width="110" height="110" viewBox="0 0 110 110" style="flex-shrink:0;cursor:pointer" onclick="handleDonutSvgTap(event)">
-        <g id="an-donut-arcs"></g>
-        <text id="an-donut-center-pct" x="55" y="48" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">0%</text>
-        <text id="an-donut-center-lbl" x="55" y="64" text-anchor="middle" font-size="10" fill="#94a3b8">saved</text>
-      </svg>
-      <div class="an-donut-legend" id="an-donut-legend"></div>
-    </div>
-  </div>
-  <div class="an-donut-detail an-donut-card" id="an-donut-detail" style="margin-top:8px">
-    <div class="an-detail-inner">
-      <div class="an-detail-header"><div class="an-detail-dot" id="an-detail-dot"></div><div class="an-detail-name" id="an-detail-name">—</div><span class="an-detail-hint">tap again to close</span></div>
-      <div class="an-detail-stats">
-        <div class="an-detail-stat"><div class="an-detail-stat-val" id="an-detail-amt">฿0</div><div class="an-detail-stat-lbl">Total spent</div></div>
-        <div class="an-detail-stat"><div class="an-detail-stat-val" id="an-detail-pct">0%</div><div class="an-detail-stat-lbl">Of expenses</div></div>
-        <div class="an-detail-stat"><div class="an-detail-stat-val" id="an-detail-count">0</div><div class="an-detail-stat-lbl">Transactions</div></div>
+  <div class="an-charts-row">
+    <div class="an-col">
+      <div class="an-donut-card">
+        <div class="an-donut-card-header">Spending by category</div>
+        <div class="an-donut-wrap" style="padding:8px 14px 10px">
+          <svg id="an-donut-svg" width="110" height="110" viewBox="0 0 110 110" style="flex-shrink:0;cursor:pointer" onclick="handleDonutSvgTap(event)">
+            <g id="an-donut-arcs"></g>
+            <text id="an-donut-center-pct" x="55" y="48" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">0%</text>
+            <text id="an-donut-center-lbl" x="55" y="64" text-anchor="middle" font-size="10" fill="#94a3b8">saved</text>
+          </svg>
+          <div class="an-donut-legend" id="an-donut-legend"></div>
+        </div>
       </div>
-      <div class="an-detail-txlist" id="an-detail-txlist"></div>
-      <div class="an-detail-see-all" id="an-detail-see-all" onclick="donutGoToHistory()">
-        <span class="an-detail-see-all-lbl" id="an-detail-see-all-lbl">See all in History</span>
-        <span class="an-detail-see-all-arr">→</span>
+      <div class="an-donut-detail an-donut-card" id="an-donut-detail" style="margin-top:8px">
+        <div class="an-detail-inner">
+          <div class="an-detail-header"><div class="an-detail-dot" id="an-detail-dot"></div><div class="an-detail-name" id="an-detail-name">—</div><span class="an-detail-hint">tap again to close</span></div>
+          <div class="an-detail-stats">
+            <div class="an-detail-stat"><div class="an-detail-stat-val" id="an-detail-amt">฿0</div><div class="an-detail-stat-lbl">Total spent</div></div>
+            <div class="an-detail-stat"><div class="an-detail-stat-val" id="an-detail-pct">0%</div><div class="an-detail-stat-lbl">Of expenses</div></div>
+            <div class="an-detail-stat"><div class="an-detail-stat-val" id="an-detail-count">0</div><div class="an-detail-stat-lbl">Transactions</div></div>
+          </div>
+          <div class="an-detail-txlist" id="an-detail-txlist"></div>
+          <div class="an-detail-see-all" id="an-detail-see-all" onclick="donutGoToHistory()">
+            <span class="an-detail-see-all-lbl" id="an-detail-see-all-lbl">See all in History</span>
+            <span class="an-detail-see-all-arr">→</span>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-  <div class="an-year-wrap" style="margin:12px 20px 0">
-    <div id="an-year-summary" style="display:flex;gap:8px"></div>
-  </div>
-  <!-- Savings rate trend — 12 months -->
-  <div class="rate-chart-wrap" id="rate-chart-wrap">
-    <div class="rate-chart-hd">Savings rate — last 12 months</div>
-    <div id="rate-chart-svg"></div>
-    <div id="rate-chart-axis" style="display:flex;justify-content:space-between;font-size:9px;color:var(--slate-400);margin-top:4px"></div>
-  </div>
-  <!-- Month-over-month comparison (C+E combined) -->
-  <div style="margin:14px 20px 0" id="mom-container">
-    <div class="sec-hd" style="margin-bottom:8px"><span class="section-label" id="mom-section-label">vs last month</span></div>
-    <div class="card" style="padding:12px 14px" id="mom-section"></div>
+    <div class="an-col">
+      <div class="an-year-wrap" style="margin:12px 20px 0">
+        <div class="sec-hd" style="margin-bottom:8px"><span class="section-label" id="an-year-label">Yearly overview</span></div>
+        <div id="an-year-summary" style="display:flex;gap:8px"></div>
+      </div>
+      <!-- Savings rate trend — 12 months -->
+      <div class="rate-chart-wrap" id="rate-chart-wrap">
+        <div class="rate-chart-hd">Savings rate — last 12 months</div>
+        <div id="rate-chart-svg"></div>
+        <div id="rate-chart-axis" style="display:flex;justify-content:space-between;font-size:9px;color:var(--slate-400);margin-top:4px"></div>
+      </div>
+      <!-- Month-over-month comparison (C+E combined) -->
+      <div style="margin:14px 20px 0" id="mom-container">
+        <div class="sec-hd" style="margin-bottom:8px"><span class="section-label" id="mom-section-label">vs last month</span></div>
+        <div class="card" style="padding:12px 14px" id="mom-section"></div>
+      </div>
+    </div>
   </div>
   <div class="spacer"></div>
 </div>
