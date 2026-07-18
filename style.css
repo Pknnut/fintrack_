@@ -766,5 +766,5 @@
     .fab { width: 100%; height: 42px; border-radius: var(--radius-sm); background: var(--teal); margin-top: 0; }
     .fab svg { width: 18px; height: 18px; }
 
-    .page { margin-left: 220px; padding: 28px 32px 40px; max-width: 640px; }
+    .page { margin-left: 220px; padding: 28px 32px 40px; max-width: 900px; }
   }
