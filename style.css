@@ -765,19 +765,15 @@
 
     .page { margin-left: 220px; padding: 28px 32px 40px; max-width: 1040px; }
 
-    #page-home.active {
-      display: grid; grid-template-columns: 1.3fr 1fr; align-content: start;
-      gap: 16px; column-gap: 20px;
-    }
-    #page-home .home-header,
-    #page-home .tx-section,
-    #page-home .recurring-banner,
-    #page-home .spacer { grid-column: 1 / -1; }
-    #page-home .balance-card,
-    #page-home .chart-section { grid-column: 1; }
-    #page-home #notif-banners,
-    #page-home #home-nw-card,
-    #page-home #home-estbills-card { grid-column: 2; }
+    /* Home: balance+chart in one flex column, net-worth/notifications/est-bills in
+       another — independent columns (not CSS grid) so uneven card heights don't
+       force mismatched row placement between the two */
+    .home-charts-row { display: flex; align-items: flex-start; gap: 20px; }
+    .home-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+    .home-col .balance-card,
+    .home-col .chart-section,
+    .home-col .nw-card,
+    .home-col .notif-banner { margin-left: 0; margin-right: 0; }
 
     /* Goals: card list becomes a 2-column grid */
     .goals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }

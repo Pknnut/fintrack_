@@ -270,49 +270,55 @@
       <button class="notif-btn" onclick="goTo('settings')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--slate-500)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     </div>
   </div>
-  <div class="balance-card">
-    <div class="balance-label">CURRENT BALANCE</div>
-    <div class="balance-amount" id="home-balance">฿0</div>
-    <div class="balance-ie">
-      <div class="bie-item"><div class="bie-dot" style="background:var(--green-strong)"></div><div><div class="bie-lbl">Income</div><div class="bie-val" id="home-inc">฿0</div></div></div>
-      <div class="bie-divider"></div>
-      <div class="bie-item"><div class="bie-dot" style="background:var(--red-strong)"></div><div><div class="bie-lbl">Expenses</div><div class="bie-val" id="home-exp">฿0</div></div></div>
-    </div>
-    <div class="balance-actions">
-      <button class="bal-action c-hist" onclick="goTo('history')"><div class="bal-action-icon"><i class="ti ti-history"></i></div><div class="bal-action-label">History</div></button>
-      <button class="bal-action c-budget" onclick="goTo('budget')"><div class="bal-action-icon"><i class="ti ti-wallet"></i></div><div class="bal-action-label">Budget</div></button>
-      <button class="bal-action c-export" onclick="goTo('calendar')"><div class="bal-action-icon"><i class="ti ti-calendar"></i></div><div class="bal-action-label">Calendar</div></button>
-      <button class="bal-action c-sync" onclick="goTo('recurring')"><div class="bal-action-icon"><i class="ti ti-refresh"></i></div><div class="bal-action-label">Recurring</div></button>
-    </div>
-  </div>
-  <div id="notif-banners"></div>
-  <div class="chart-section">
-    <div class="chart-header">
-      <span class="section-label">Spending</span>
-      <div class="period-pills">
-        <button class="period-pill active" onclick="setChartPeriod('1W',this)">1W</button>
-        <button class="period-pill" onclick="setChartPeriod('1M',this)">1M</button>
-        <button class="period-pill" onclick="setChartPeriod('3M',this)">3M</button>
+  <div class="home-charts-row">
+    <div class="home-col">
+      <div class="balance-card">
+        <div class="balance-label">CURRENT BALANCE</div>
+        <div class="balance-amount" id="home-balance">฿0</div>
+        <div class="balance-ie">
+          <div class="bie-item"><div class="bie-dot" style="background:var(--green-strong)"></div><div><div class="bie-lbl">Income</div><div class="bie-val" id="home-inc">฿0</div></div></div>
+          <div class="bie-divider"></div>
+          <div class="bie-item"><div class="bie-dot" style="background:var(--red-strong)"></div><div><div class="bie-lbl">Expenses</div><div class="bie-val" id="home-exp">฿0</div></div></div>
+        </div>
+        <div class="balance-actions">
+          <button class="bal-action c-hist" onclick="goTo('history')"><div class="bal-action-icon"><i class="ti ti-history"></i></div><div class="bal-action-label">History</div></button>
+          <button class="bal-action c-budget" onclick="goTo('budget')"><div class="bal-action-icon"><i class="ti ti-wallet"></i></div><div class="bal-action-label">Budget</div></button>
+          <button class="bal-action c-export" onclick="goTo('calendar')"><div class="bal-action-icon"><i class="ti ti-calendar"></i></div><div class="bal-action-label">Calendar</div></button>
+          <button class="bal-action c-sync" onclick="goTo('recurring')"><div class="bal-action-icon"><i class="ti ti-refresh"></i></div><div class="bal-action-label">Recurring</div></button>
+        </div>
+      </div>
+      <div class="chart-section">
+        <div class="chart-header">
+          <span class="section-label">Spending</span>
+          <div class="period-pills">
+            <button class="period-pill active" onclick="setChartPeriod('1W',this)">1W</button>
+            <button class="period-pill" onclick="setChartPeriod('1M',this)">1M</button>
+            <button class="period-pill" onclick="setChartPeriod('3M',this)">3M</button>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <div class="chart-amount" id="chart-amount">฿0</div>
+          <div class="chart-sub">Total spent this week</div>
+          <div style="display:flex;gap:14px;font-size:9px;color:var(--slate-400);margin:2px 0 4px">
+            <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:2px;background:var(--indigo)"></span>This period</span>
+            <span id="chart-avg-legend" style="display:none;align-items:center;gap:4px"><span style="width:10px;height:0;border-top:2px dashed var(--slate-300)"></span>Recent average</span>
+          </div>
+          <svg width="100%" height="64" viewBox="0 0 300 64" preserveAspectRatio="none">
+            <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--indigo)" stop-opacity="0.15"/><stop offset="100%" stop-color="var(--indigo)" stop-opacity="0"/></linearGradient></defs>
+            <polygon id="chart-area" fill="url(#cg)"/>
+            <polyline id="chart-avg-line" fill="none" stroke="var(--slate-300)" stroke-width="1.5" stroke-dasharray="4,3" stroke-linejoin="round" stroke-linecap="round"/>
+            <polyline id="chart-line" fill="none" stroke="var(--indigo)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+          </svg>
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--slate-400);margin-top:4px"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+        </div>
       </div>
     </div>
-    <div class="chart-wrap">
-      <div class="chart-amount" id="chart-amount">฿0</div>
-      <div class="chart-sub">Total spent this week</div>
-      <div style="display:flex;gap:14px;font-size:9px;color:var(--slate-400);margin:2px 0 4px">
-        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:2px;background:var(--indigo)"></span>This period</span>
-        <span id="chart-avg-legend" style="display:none;align-items:center;gap:4px"><span style="width:10px;height:0;border-top:2px dashed var(--slate-300)"></span>Recent average</span>
-      </div>
-      <svg width="100%" height="64" viewBox="0 0 300 64" preserveAspectRatio="none">
-        <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--indigo)" stop-opacity="0.15"/><stop offset="100%" stop-color="var(--indigo)" stop-opacity="0"/></linearGradient></defs>
-        <polygon id="chart-area" fill="url(#cg)"/>
-        <polyline id="chart-avg-line" fill="none" stroke="var(--slate-300)" stroke-width="1.5" stroke-dasharray="4,3" stroke-linejoin="round" stroke-linecap="round"/>
-        <polyline id="chart-line" fill="none" stroke="var(--indigo)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
-      </svg>
-      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--slate-400);margin-top:4px"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+    <div class="home-col">
+      <div id="notif-banners"></div>
+      <div id="home-nw-card"></div>
+      <div id="home-estbills-card"></div>
     </div>
   </div>
-  <div id="home-nw-card"></div>
-  <div id="home-estbills-card"></div>
   <div class="recurring-banner" id="recurring-banner">
     <div class="recurring-banner-title">Suggested this month</div>
     <div id="recurring-suggestions"></div>
