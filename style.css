@@ -754,7 +754,7 @@
       padding: 20px 12px; gap: 4px; border-top: none; border-right: 1px solid var(--slate-200);
     }
     .nav-btn {
-      flex-direction: row; justify-content: flex-start; gap: 12px;
+      flex: none; flex-direction: row; justify-content: flex-start; gap: 12px;
       font-size: 13px; padding: 10px 12px; border-radius: var(--radius-sm);
     }
     .nav-btn.active { background: var(--teal-tint); }
