@@ -386,7 +386,7 @@
       <button class="period-today-btn" onclick="applyAnalyticsPicker()" style="background:var(--slate-900);color:var(--white);border-color:var(--slate-900)">Apply</button>
     </div>
   </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 20px 0">
+  <div class="an-stats-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 20px 0">
     <div class="card" style="padding:12px 14px"><div style="font-size:9px;color:var(--slate-400);margin-bottom:4px">Income</div><div style="font-size:16px;font-weight:700;color:var(--green-strong)" id="an-inc">฿0</div></div>
     <div class="card" style="padding:12px 14px"><div style="font-size:9px;color:var(--slate-400);margin-bottom:4px">Expenses</div><div style="font-size:16px;font-weight:700;color:var(--red-strong)" id="an-exp">฿0</div></div>
     <div class="card" style="padding:12px 14px"><div style="font-size:9px;color:var(--slate-400);margin-bottom:4px">Net savings</div><div style="font-size:16px;font-weight:700;color:var(--slate-900)" id="an-net">฿0</div></div>
@@ -418,8 +418,7 @@
       </div>
     </div>
   </div>
-  <div style="margin:12px 20px 0">
-    <div class="sec-hd" style="margin-bottom:8px"><span class="section-label" id="an-year-label">Yearly overview</span></div>
+  <div class="an-year-wrap" style="margin:12px 20px 0">
     <div id="an-year-summary" style="display:flex;gap:8px"></div>
   </div>
   <!-- Savings rate trend — 12 months -->
